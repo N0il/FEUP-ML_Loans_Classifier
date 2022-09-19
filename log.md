@@ -1,7 +1,10 @@
-ML 2022:
-G_40:
-- Francisco Pires
-- Sergio da Gama
+# Notas
+
+- datas dos dados -> epoca especifica do pais -> new business understanding
+
+# Log
+
+## Week 1 - 19/09/2022
 
 ## Data mining context:
 
@@ -21,3 +24,5 @@ G_40:
 ### Data mining goals
 - __Goals__: Predict which clients should receive a loan based on the available data (TODO - complete goal with actually used data)
 - __Data Mining Success criteria__: Create predictions on which clients should get loans that as an accuracy of at least 90%.
+
+---
