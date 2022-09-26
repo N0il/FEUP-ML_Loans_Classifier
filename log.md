@@ -1,6 +1,7 @@
 # Notas
 
 - datas dos dados -> epoca especifica do pais -> new business understanding
+- dados de teste da competição serão posteriores aos dados das tabelas -> melhor usar dados mais recentes para teste? not sure, must check data plots
 
 # Log
 
@@ -26,3 +27,19 @@
 - __Data Mining Success criteria__: Create predictions on which clients should get loans that as an accuracy of at least 90%.
 
 ---
+
+## Week 2 - 26/09/2022
+
+## TODO:
+- Data division for evaluation, etc.
+- Build first model (eg. Decision Tree - Random Forest)
+
+## Data Splitting and Model Evaluation Methods
+
+### Data Splitting Method
+
+Seeing as our dataset on loans isn't big enough to make a division 
+
+### Model Evaluation Method
+
+__TODO__
