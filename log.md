@@ -38,7 +38,7 @@
 
 ### Data Splitting Method
 
-Seeing as our dataset on loans isn't big enough to make a division 
+Seeing as our model is meant to predict future loans we choose to divide the data based on a __Time Series__ split. 
 
 ### Model Evaluation Method
 
