@@ -1,6 +1,7 @@
 ML 2022:
 G_40:
 - Francisco Pires
+- Luis Miranda
 - Sergio da Gama
 
 ## Data mining context:
