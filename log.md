@@ -18,7 +18,7 @@
 ### Objectives
 - __Background__: Bank managers only have a vague idea if a certain client should receive a loan.
 - __Business objective__: Improve the bank's lending service by predicting which clients should receive loans.
-- __Business Success criteria__: Reduce the percentage of bad loans given by the bank. 
+- __Business Success criteria__: Reduce the percentage of bad loans given by the bank.
 ### Assess Situation
 - __Inventory and Assumptions__: We are working with a given set of data which we assume to be correct.
 - __Risk and Contingencies__: may contain outliers in the data. (TODO - To be dealt with in data preparation.)
@@ -38,7 +38,7 @@
 
 ### Data Splitting Method
 
-Seeing as our model is meant to predict future loans we choose to divide the data based on a __Time Series__ split. 
+Seeing as our model is meant to predict future loans we choose to divide the data based on a __Time Series__ split.
 
 ### Model Evaluation Method
 
@@ -50,13 +50,13 @@ __TODO__
 
 ## Data Understanding
 
-### Collect Data 
+### Collect Data
 Collected data from project assignment
 
 ### Describe Data
 Data already described in project assignment
 
-### Data exploration 
+### Data exploration
 Data analysis that consists on identifying relationships between pairs or small numbers of attributes, results of simple aggregations, properties of significant sub-populations, and simple statistical analyses.
 
 #### Strategies:
@@ -77,16 +77,16 @@ Data analysis that consists on identifying relationships between pairs or small 
 
 - **Data visualization**: While statistical data exploration methods have specific questions and objectives, data visualization does not necessarily have a specific question. It can just be performed to explore data and get a sense of what the shape of the data is. There are various methods to accomplish this, like, PCA, t-SNE, Perplexity, Cluster size, Topology, Nondeterministic results and UMAP.
 
-So, we start by doing an univariant analisys of some of the most relevant variables to our business goal. 
+So, we start by doing an univariant analisys and check the outliers of the most relevant variables to our business goal.
 
 #### **Loan Status**
-- This is by far the most relevant attribute, as it is the one that states if a loan is running well or not and in a sense it is what our model will have to predict. 
+- This is by far the most relevant attribute, as it is the one that states if a loan is running well or not and in a sense it is what our model will have to predict.
 
-#### **Loan Amount**
-- TODO
+#### **Loan Amount and DUration**
+- Both the loan amount and duration are also of extreme importance in a way that they are intrinsically connected to the difficulty of the loan completion. If the amount is to high for the loanee's monthly income, then it will probably struggle to complete it, or it will just take too much time. Moreover, if the duration is too short and the amount is also high, once again, the loanee will end up on a situation were the monthly installment might be too  high for their income, or available capital.
 
 #### **Loan Duration**
-- TODO
+- DOING IT ABOVE
 
 #### **Loan Date**
 - TODO
