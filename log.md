@@ -67,11 +67,11 @@ Data analysis that consists on identifying relationships between pairs or small 
 
 - **Homogeneity in variance**: **TODO**
 
+- **Collinearity in covariates**: **TODO**
+
 - **Normally distributed data**: Various statistical techniques assume normality, such as linear regressions and t-tests. Histograms can be used to show data distributions.
 
 - **Missing value in the data**: These type of values make the analysis more complicated. This analysis ca be checking if a particular observation as a zero value, in some cases (e.g. loan amount).
-
-- **Collinearity in covariates**: **TODO**
 
 - **Interaction between variables**: Interaction means the relationship of variables will change according to the value of other variables. This type of information can be found by observing the weights of the variables when performing linear regression.
 
