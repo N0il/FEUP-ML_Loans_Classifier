@@ -43,3 +43,81 @@ Seeing as our model is meant to predict future loans we choose to divide the dat
 ### Model Evaluation Method
 
 __TODO__
+
+---
+
+## Week 3 - 03/10/2022
+
+## Data Understanding
+
+### Collect Data 
+Collected data from project assignment
+
+### Describe Data
+Data already described in project assignment
+
+### Data exploration 
+Data analysis that consists on identifying relationships between pairs or small numbers of attributes, results of simple aggregations, properties of significant sub-populations, and simple statistical analyses.
+
+#### Strategies:
+
+- **Univariate analysis**: Univariate analysis is the simplest form of analyzing data. It is only analyzed one specific variable at a time. Some ways you can describe patterns found in univariate data include central tendency (mean, mode and median) and dispersion: range , variance, maximum, minimum, quartiles (including the interquartile range), and standard deviation.
+
+- **Outliers in the data**: These are observations that have relatively large or small values compared to the majority of observations. In order to detect them Boxplot and Cleveland dot plots are two good tools.
+
+- **Homogeneity in variance**: **TODO**
+
+- **Normally distributed data**: Various statistical techniques assume normality, such as linear regressions and t-tests. Histograms can be used to show data distributions.
+
+- **Missing value in the data**: These type of values make the analysis more complicated. This analysis ca be checking if a particular observation as a zero value, in some cases (e.g. loan amount).
+
+- **Collinearity in covariates**: **TODO**
+
+- **Interaction between variables**: Interaction means the relationship of variables will change according to the value of other variables. This type of information can be found by observing the weights of the variables when performing linear regression.
+
+- **Data visualization**: While statistical data exploration methods have specific questions and objectives, data visualization does not necessarily have a specific question. It can just be performed to explore data and get a sense of what the shape of the data is. There are various methods to accomplish this, like, PCA, t-SNE, Perplexity, Cluster size, Topology, Nondeterministic results and UMAP.
+
+So, we start by doing an univariant analisys of some of the most relevant variables to our business goal. 
+
+#### **Loan Status**
+- This is by far the most relevant attribute, as it is the one that states if a loan is running well or not and in a sense it is what our model will have to predict. 
+
+#### **Loan Amount**
+- TODO
+
+#### **Loan Duration**
+- TODO
+
+#### **Loan Date**
+- TODO
+
+#### **Loan Payments**
+- TODO
+
+#### **Client Age**
+- TODO
+
+#### **Client Gender**
+- TODO
+
+#### **Client District**
+- TODO
+
+#### **Type of Card**
+- TODO
+
+#### **Balance after transactions**
+- TODO
+
+#### **Amount of transactions**
+- TODO
+
+#### **Debited amount**
+- TODO
+
+#### **Type of transactions**
+- TODO
+
+NOTE: review district data, like avg. salary, unemployment rate, n. of crimes
+
+
