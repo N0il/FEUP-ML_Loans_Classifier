@@ -132,8 +132,6 @@ gold | 9
 
 - And here is some data regarding their __issue date__
 
-[comment]: # (not sure if all of those metrics are relevant seeing as they are integers representing dates, should we try to get the same data for each type of card separately?)
-
 Metrics | Values
 ----           | ---- 
 mean           | 9.549713e+05
