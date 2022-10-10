@@ -82,7 +82,7 @@ So, we start by doing an univariant analisys and check the outliers of the most 
 #### **Loan Status**
 - This is by far the most relevant attribute, as it is the one that states if a loan is running well or not and in a sense it is what our model will have to predict.
 
-#### **Loan Amount and DUration**
+#### **Loan Amount and Duration**
 - Both the loan amount and duration are also of extreme importance in a way that they are intrinsically connected to the difficulty of the loan completion. If the amount is to high for the loanee's monthly income, then it will probably struggle to complete it, or it will just take too much time. Moreover, if the duration is too short and the amount is also high, once again, the loanee will end up on a situation were the monthly installment might be too  high for their income, or available capital.
 
 #### **Loan Duration**
@@ -100,11 +100,54 @@ So, we start by doing an univariant analisys and check the outliers of the most 
 #### **Client Gender**
 - TODO
 
+[comment]: # (xico daqui pra baixo)
 #### **Client District**
-- TODO
+[comment]: # (would make more sense statistics of n of inhabitants/cities/etc per district **District data**)
+
+Statistics metrics | No. of Inhabitants | No. of Cities | Average salary 
+---- | ---- | ---- | ---- 
+mean | 1.338849e+05 | 6.259740 | 9031.675325
+var | 1.874530e+10 | 5.931647 | 624419.748462
+std | 1.369135e+05 | 2.435497 | 790.202347
+min | 4.282100e+04 | 1.000000 | 8110.000000
+25% | 8.585200e+04 | 5.000000 | 8512.000000
+median | 1.088710e+05 | 6.000000 | 8814.000000
+75% | 1.390120e+05 | 8.000000 | 9317.000000
+max | 1.204953e+06 | 11.000000 | 12541.000000
+lower limit for outliers | 6.112000e+03 | 0.500000 | 7304.500000
+upper limit for outliers | 2.187520e+05 | 12.500000 | 10524.500000
+number of lower outliers | 0 | 0 | 0
+number of higher outliers | 6 | 0 | 4
+
 
 #### **Type of Card**
-- TODO
+- The type of cards issued have the following distribution
+
+Type of Card | Number of Cards issued
+---- | ----
+TOTAL | 177
+classic | 127
+junior | 41
+gold | 9
+
+- And here is some data regarding their __issue date__
+
+[comment]: # (not sure if all of those metrics are relevant seeing as they are integers representing dates, should we try to get the same data for each type of card separately?)
+
+Metrics | Values
+----           | ---- 
+mean           | 9.549713e+05
+var            | 5.209916e+07
+std            | 7.217975e+03
+min            | 9.311070e+05
+25%            | 9.506160e+05
+median         | 9.602210e+05
+75%            | 9.608310e+05
+max            | 9.612310e+05
+lower_limit    | 9.352935e+05
+upper_limit    | 9.761535e+05
+outliers-      | 1.000000e+00
+outliers+      | 0.000000e+00
 
 #### **Balance after transactions**
 - TODO
