@@ -16,15 +16,20 @@ def loadData():
 
     return (accounts, cards, clients, dispositions, districts, loans, transactions)
 
-# attribute creation
+# attribute creation (genders)
 def createClientGender(clients):
-    gender = np.where(clients['birth_number'] % 10000>5000, 'Female', 'Male')
+    gender = np.where(clients['birth_number'] % 10000>5000, 'female', 'male')
     return gender
 
-# attribute creation
+# util
 def createClientAge(clients):
     ages = (CURRENT_EPOCH % 100) - clients['birth_number'] // 10000
     return ages
+
+# attribute creation (age groups)
+def createAgeGroup(ages):
+    ageGroups = map(lambda age: 'kid' if age < 18 else ('adult' if age < 65 else 'elderly'), ages)
+    return ageGroups
 
 # util
 def convertDate(date):
@@ -35,9 +40,30 @@ def convertDate(date):
     result = datetime.datetime(int(year), int(month), int(day))
     return result
 
-# attribute creation
+# possible attribute creation (birthdates)
 def createClientBirthdate(clients):
     birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
     birthdates = map(convertDate, birthdatesRaw)
     return birthdates
+
+# util (creating clients salary)
+def createSalary():
+    # check only monthly recurrent income
+    pass
+
+# util (creating clients total of monthly loans)
+def createLoansExpenses():
+    pass
+
+# util (creating clients total of monthly expenses, including loans)
+def createAllExpenses():
+    pass
+
+# attribute creation (effort rate)
+def createEffortRate():
+    pass
+
+# attribute creation (savings rate)
+def createSavingsRate():
+    pass
 
