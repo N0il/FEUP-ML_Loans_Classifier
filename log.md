@@ -85,9 +85,6 @@ So, we start by doing an univariant analisys and check the outliers of the most 
 #### **Loan Amount and Duration**
 - Both the loan amount and duration are also of extreme importance in a way that they are intrinsically connected to the difficulty of the loan completion. If the amount is to high for the loanee's monthly income, then it will probably struggle to complete it, or it will just take too much time. Moreover, if the duration is too short and the amount is also high, once again, the loanee will end up on a situation were the monthly installment might be too  high for their income, or available capital.
 
-#### **Loan Duration**
-- DOING IT ABOVE
-
 #### **Loan Date**
 - TODO
 
@@ -104,8 +101,8 @@ So, we start by doing an univariant analisys and check the outliers of the most 
 #### **Client District**
 [comment]: # (would make more sense statistics of n of inhabitants/cities/etc per district **District data**)
 
-Statistics metrics | No. of Inhabitants | No. of Cities | Average salary 
----- | ---- | ---- | ---- 
+Statistics metrics | No. of Inhabitants | No. of Cities | Average salary
+---- | ---- | ---- | ----
 mean | 1.338849e+05 | 6.259740 | 9031.675325
 var | 1.874530e+10 | 5.931647 | 624419.748462
 std | 1.369135e+05 | 2.435497 | 790.202347
@@ -133,7 +130,7 @@ gold | 9
 - And here is some data regarding their __issue date__
 
 Metrics | Values
-----           | ---- 
+----           | ----
 mean           | 9.549713e+05
 var            | 5.209916e+07
 std            | 7.217975e+03
