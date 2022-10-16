@@ -11,15 +11,14 @@ def convertDate(date):
     month = date[2:4]
     day = date[4:]
 
-    result = datetime.datetime(int(year), int(month), int(day))
-    return result
+    convertedDate = datetime.datetime(int(year), int(month), int(day))
+    return convertedDate
 
 # (creating clients salary)
-def createSalary():
+def createSalary(transactions):
     # check only monthly recurrent income:
-
         # 1 - convert all transactions table dates
-        # 2 - create a map for each client with an entry for each month
+        # 2 - create a map for each client with an entry for each month (starting in the smallest one found until the furthest one)
         # 3 - create an array of values for each map entry
         # 4 - check values that are recurrent in each array
         # 5 - the sum of the values of the previous step are the salary
@@ -37,4 +36,5 @@ def createLoansExpenses():
 def createAllExpenses():
     # 1 - sum all negative transactions (withdraws and debits) per month
     # 2 - make and average of the months
+    # 3 - sum the value from the previous step with the value from the function createLoansExpenses()
     pass
