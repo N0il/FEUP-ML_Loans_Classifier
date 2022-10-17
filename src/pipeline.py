@@ -1,6 +1,7 @@
+import datetime
 from loadData import loadData
 from createData import createAgeGroup, createClientGender
-from utils import createClientAge
+from utils import convertIntDate, createClientAge, createSalary
 
 # loading all the csv tables
 (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
@@ -8,11 +9,11 @@ from utils import createClientAge
 # =============== Feature Creation ===============
 
 # client's gender
-genders = createClientGender(clients)
+#genders = createClientGender(clients)
 
 # client's age group
-ages = createClientAge(clients)
-ageGroups = createAgeGroup(ages)
+#ages = createClientAge(clients)
+#ageGroups = createAgeGroup(ages)
 
 # client's effort rate result (above 40 -> yes, below 40% -> no)
 # TODO
@@ -34,3 +35,10 @@ ageGroups = createAgeGroup(ages)
 
 # ================ Model Testing ==================
 # TODO
+
+
+# DEBUGGING TESTS
+createSalary(transactions)
+
+
+# print(convertIntDate(980330))
