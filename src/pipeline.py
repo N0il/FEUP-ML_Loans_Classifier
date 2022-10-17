@@ -1,7 +1,7 @@
 import datetime
 from loadData import loadData
 from createData import createAgeGroup, createClientGender
-from utils import convertIntDate, createClientAge, createSalary
+from utils import convertIntDate, createClientAge, createLoanExpenses, createSalary
 
 # loading all the csv tables
 (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
@@ -38,7 +38,6 @@ from utils import convertIntDate, createClientAge, createSalary
 
 
 # DEBUGGING TESTS
-createSalary(transactions)
+# createSalary(transactions)
 
-
-# print(convertIntDate(980330))
+createLoanExpenses(loans)

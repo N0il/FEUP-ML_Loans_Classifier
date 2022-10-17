@@ -1,6 +1,7 @@
 from calendar import month
 import numpy as np
 import datetime
+from dateutil.relativedelta import relativedelta
 
 CURRENT_EPOCH = 1997
 
@@ -23,6 +24,9 @@ def convertIntDate(date):
 
     convertedDate = datetime.datetime(int(year), int(month), int(day))
     return convertedDate
+
+def calculateEndDate(startDate, duration):
+    return startDate + relativedelta(months=+duration)
 
 # (creating clients salary) -> maybe use samples (year by year instead of the whole table)
 def createSalary(transactions, occurrencesThreshold=0.8):
@@ -89,6 +93,9 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
         salaries[accountId] = salary
 
+    # 6 TODO: only need the end date (or maybe ignore) if not ignore -> check if loan start date is before the salary end date
+    #                                                                -> if it is not consider the district average salary
+
     values_view = salaries.values()
     value_iterator = iter(values_view)
     first_value = next(value_iterator)
@@ -99,13 +106,28 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
 
 # (creating clients total of monthly loans)
-def createLoansExpenses():
-    # 1 - see loan init and end date
-    # 2 - sum all of the loans per month
-    # 3 - make an average of the months
-    pass
+def createLoanExpenses(loans):
+    # 1 - convert all loan dates
+    # 2 - calculate end date
+    # 3 - for each loan calculate the total of loans being payed (loans with concurrent periods -> main loan start is before loan being iterated)
 
-# (creating clients total of monthly expenses, including loans)
+    # 1
+    loans['date'] = loans['date'].apply(convertIntDate)
+    print(loans['date'][0])
+
+    # 2
+    for index, row in loans.iterrows():
+        endDate = calculateEndDate(row['date'], row['duration'])
+        print("START: " + str(row['date']) + " END: " + str(endDate))
+
+    # 3
+    for index, row in loans.iterrows():
+
+        for insideIndex, insideRow in loans.iterrows():
+             if index != insideIndex:
+                pass
+
+# (creating clients total of monthly expenses, excluding loans)
 def createAllExpenses():
     # 1 - sum all negative transactions (withdraws and debits) per month
     # 2 - make and average of the months

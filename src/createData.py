@@ -26,7 +26,7 @@ def createSavingsRate():
     pass
     # TODO
 
-# attribute creation (district average salary)
+# attribute creation (district average salary) -> or just used as an util
 def createDistrictAvgSalary():
     pass
     # TODO
