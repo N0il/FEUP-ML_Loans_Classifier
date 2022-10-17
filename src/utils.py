@@ -38,6 +38,9 @@ def createSalary(transactions, occurrencesThreshold=0.8):
         # 5 - the sum of the values of the previous step are the salary
         # 6 - also record the period of months to match with the other periods
 
+    # Calculus modes:
+        # A -
+
     # 1
     transactions['date'] = transactions['date'].apply(convertIntDate)
     print(transactions['date'][0])
@@ -115,17 +118,37 @@ def createLoanExpenses(loans):
     loans['date'] = loans['date'].apply(convertIntDate)
     print(loans['date'][0])
 
+    endDates = {}
     # 2
     for index, row in loans.iterrows():
         endDate = calculateEndDate(row['date'], row['duration'])
-        print("START: " + str(row['date']) + " END: " + str(endDate))
+        endDates[row['loan_id']] = endDate
+        # print("START: " + str(row['date']) + " END: " + str(endDate))
+
+    loansExpenses = {}
+
+    #
 
     # 3
     for index, row in loans.iterrows():
 
+        concurrentLoansAmount = row['payments']
+
         for insideIndex, insideRow in loans.iterrows():
              if index != insideIndex:
-                pass
+                if row['account_id'] == insideRow['account_id']:
+                    if endDates[insideRow['loan_id']] < endDates[row['loan_id']]:
+                        concurrentLoansAmount += insideRow['payments']
+
+
+        loansExpenses[row['loan_id']] = concurrentLoansAmount
+
+    # DEBUGGING
+    for index, row in loans.iterrows():
+        if loansExpenses[row['loan_id']] != row['payments']:
+            print("HERE: " + str(row['payments']))
+
+    return loansExpenses
 
 # (creating clients total of monthly expenses, excluding loans)
 def createAllExpenses():
