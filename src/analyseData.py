@@ -1,5 +1,5 @@
 from loadData import loadData
-from utils import createLoanExpenses, createSalary
+from utils import createAllExpenses, createLoanExpenses, createSalary
 import pandas as pd
 
 from functools import partial
@@ -48,6 +48,7 @@ print(df.count()) """
 
 # loanExpenses = createLoanExpenses(loans)
 
-print(loans['account_id'].value_counts())
+#print(loans['account_id'].value_counts())
 
+createAllExpenses(transactions)
 

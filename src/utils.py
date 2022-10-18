@@ -123,11 +123,8 @@ def createLoanExpenses(loans):
     for index, row in loans.iterrows():
         endDate = calculateEndDate(row['date'], row['duration'])
         endDates[row['loan_id']] = endDate
-        # print("START: " + str(row['date']) + " END: " + str(endDate))
 
     loansExpenses = {}
-
-    #
 
     # 3
     for index, row in loans.iterrows():
@@ -141,18 +138,65 @@ def createLoanExpenses(loans):
                         concurrentLoansAmount += insideRow['payments']
 
 
-        loansExpenses[row['loan_id']] = concurrentLoansAmount
+        loansExpenses[row['loan_id']] = (concurrentLoansAmount, row['account_id'])
 
     # DEBUGGING
     for index, row in loans.iterrows():
-        if loansExpenses[row['loan_id']] != row['payments']:
+        if loansExpenses[row['loan_id']][0] != row['payments']:
             print("HERE: " + str(row['payments']))
 
     return loansExpenses
 
 # (creating clients total of monthly expenses, excluding loans)
-def createAllExpenses():
-    # 1 - sum all negative transactions (withdraws and debits) per month
-    # 2 - make and average of the months
-    # 3 - sum the value from the previous step with the value from the function createLoansExpenses()
-    pass
+def createAllExpenses(transactions):
+    # 1 - convert all dates
+    # 2 - sum all negative transactions (withdraws) per month
+    # 3 - sum all debits per month (table missing)
+    # 4 - make an average of the months
+
+    # 1
+    transactions['date'] = transactions['date'].apply(convertIntDate)
+    print(transactions['date'][0])
+
+    clientsExpenses = {}
+
+    # 2
+    for index, row in transactions.iterrows():
+         if row['type'] == 'withdrawal':
+            monthYearId = str(row['date'].year) + str(row['date'].month)
+
+            if row['account_id'] not in clientsExpenses:
+                months = {}
+                months[monthYearId] = row['amount']
+                clientsExpenses[row['account_id']] = months
+            else:
+                if monthYearId not in clientsExpenses[row['account_id']]:
+                    clientsExpenses[row['account_id']][monthYearId] = row['amount']
+                else:
+                    clientsExpenses[row['account_id']][monthYearId] += row['amount']
+
+    values_view = clientsExpenses.values()
+    value_iterator = iter(values_view)
+    first_value = next(value_iterator)
+    print(first_value)
+
+    # 4
+    for accountId in clientsExpenses:
+        totalAmount = 0
+        nMonths = len(clientsExpenses[accountId])
+
+        for monthId in clientsExpenses[accountId]:
+            totalAmount += clientsExpenses[accountId][monthId]
+
+        averageAmount = totalAmount / nMonths
+
+        clientsExpenses[accountId] = averageAmount
+
+    values_view = clientsExpenses.values()
+    value_iterator = iter(values_view)
+    first_value = next(value_iterator)
+    print(first_value)
+
+    return clientsExpenses
+
+

@@ -16,7 +16,25 @@ from utils import convertIntDate, createClientAge, createLoanExpenses, createSal
 #ageGroups = createAgeGroup(ages)
 
 # client's effort rate result (above 40 -> yes, below 40% -> no)
-# TODO
+salaries = createSalary(transactions, 0.4)
+loanExpenses = createLoanExpenses(loans)
+
+effortRates = {}
+
+for loanId in loanExpenses:
+    accountId = loans['account_id'][1]
+
+    if accountId in salaries:
+        if salaries[accountId] == 0:
+            effortRates[loanId] = 204
+        else:
+            effortRates[loanId] = (loanExpenses[loanId][0] / salaries[accountId]) * 100
+    else:
+        effortRates[loanId] = 404
+
+# debugging
+for key in effortRates:
+    print(effortRates[key])
 
 # client's savings rate
 # TODO
@@ -40,4 +58,4 @@ from utils import convertIntDate, createClientAge, createLoanExpenses, createSal
 # DEBUGGING TESTS
 # createSalary(transactions)
 
-createLoanExpenses(loans)
+# createLoanExpenses(loans)
