@@ -44,34 +44,34 @@ def plotData(dfX, dfY, plotType, name=""):
         plt.savefig("../plots/"+name+".png", bbox_inches='tight')
 
 
-(accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
+# (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
 
-salaries = createSalary(transactions, 0.8)
+""" salaries = createSalary(transactions, 0.8)
 plotData(salaries, 50, 'hist');
 
-# salariesPdFormat = {}
+salariesPdFormat = {}
 
-# salariesPdFormat['salary'] = []
+salariesPdFormat['salary'] = []
 
-# for key in salaries:
-#     salariesPdFormat['salary'].append(salaries[key])
+for key in salaries:
+    salariesPdFormat['salary'].append(salaries[key])
 
-# df = pd.DataFrame(salariesPdFormat)
+df = pd.DataFrame(salariesPdFormat)
 
-# # print(df.head())
+print(df.head())
 
-# print(statFunc(df))
+print(statFunc(df))
 
-# total = (df['salary'] == df['salary']).sum()
+total = (df['salary'] == df['salary']).sum()
 total = df.count()[0]
 
-# zeros = (df['salary'] == 0).sum()
+zeros = (df['salary'] == 0).sum()
 
 print("NUMBER OF SALARIES: ", total)
 
 print("NUMBER OF ZERO SALARIES: ", zeros)
 
-print("% OF ZERO SALARIES: ", (zeros / total) * 100)
+print("% OF ZERO SALARIES: ", (zeros / total) * 100) """
 
 # loanExpenses = createLoanExpenses(loans)
 

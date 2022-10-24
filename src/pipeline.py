@@ -43,7 +43,7 @@ for loanId in loanExpenses:
         if salaries[accountId] == 0:
             effortRates[loanId] = 204
             effortRates[loanId] = (loanExpenses[loanId][0] / districtAvgSalary[accountId]) * 100
-            effortRates[loanId] = 'yes' if effortRates[loanId] <= 40 else 'no'
+            effortRates[loanId] = 1 if effortRates[loanId] <= 40 else 0
         else:
             effortRates[loanId] = (loanExpenses[loanId][0] / salaries[accountId]) * 100
     else:
@@ -60,8 +60,11 @@ effortPdFormat['effortRate'] = []
 
 for key in effortRates:
     effortPdFormat['effortRate'].append(effortRates[key])
+    print(effortRates[key])
 
 df = pd.DataFrame(effortPdFormat)
+
+print(df.value_counts())
 
 print(statFunc(df))
 
