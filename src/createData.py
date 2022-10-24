@@ -27,11 +27,19 @@ def createSavingsRate():
     # TODO
 
 # attribute creation (district average salary) -> or just used as an util
-def createDistrictAvgSalary():
-    pass
-    # TODO
+def createDistrictAvgSalary(accounts, districts):
+    avgsalaries = {}
+    for index, row in accounts.iterrows():
+        for innerIndex, innerow in districts.iterrows():
+           if(row["district_id"] == innerow["code "]):
+                avgsalaries[row["account_id"]] = innerow["average salary "]
+    return avgsalaries
 
 # attribute creation (district criminality rate)
-def createDistrictCriminalityRate():
-    pass
-    # TODO
+def createDistrictCriminalityRate(accounts, districts):
+    distCrimeRate = {}
+    for index, row in accounts.iterrows():
+        for innerIndex, innerow in districts.iterrows():
+           if(row["district_id"] == innerow["code"]):
+                distCrimeRate[row["account_id"]] = (innerow["no. of commited crimes '95 "] + innerow["no. of commited crimes '96 "]) / innerow["no. of inhabitants "]
+    return distCrimeRate

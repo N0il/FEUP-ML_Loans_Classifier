@@ -1,7 +1,15 @@
 import datetime
 from loadData import loadData
-from createData import createAgeGroup, createClientGender
+from createData import createAgeGroup, createClientGender, createDistrictAvgSalary
 from utils import convertIntDate, createClientAge, createLoanExpenses, createSalary
+from analyseData import statFunc
+import pandas as pd
+
+from functools import partial
+q_25 = partial(pd.Series.quantile, q=0.25)
+q_25.__name__ = "25%"
+q_75 = partial(pd.Series.quantile, q=0.75)
+q_75.__name__ = "75%"
 
 # loading all the csv tables
 (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
@@ -15,8 +23,15 @@ from utils import convertIntDate, createClientAge, createLoanExpenses, createSal
 #ages = createClientAge(clients)
 #ageGroups = createAgeGroup(ages)
 
+# client's district average salary
+# TODO
+districtAvgSalary = createDistrictAvgSalary(accounts, districts)
+
+for id in districtAvgSalary:
+    print(districtAvgSalary[id])
+
 # client's effort rate result (above 40 -> yes, below 40% -> no)
-salaries = createSalary(transactions, 0.4)
+salaries = createSalary(transactions, 0.8)
 loanExpenses = createLoanExpenses(loans)
 
 effortRates = {}
@@ -27,19 +42,30 @@ for loanId in loanExpenses:
     if accountId in salaries:
         if salaries[accountId] == 0:
             effortRates[loanId] = 204
+            effortRates[loanId] = (loanExpenses[loanId][0] / districtAvgSalary[accountId]) * 100
+            effortRates[loanId] = 'yes' if effortRates[loanId] <= 40 else 'no'
         else:
             effortRates[loanId] = (loanExpenses[loanId][0] / salaries[accountId]) * 100
     else:
         effortRates[loanId] = 404
 
+
 # debugging
 for key in effortRates:
     print(effortRates[key])
 
-# client's savings rate
-# TODO
+effortPdFormat = {}
 
-# client's district average salary
+effortPdFormat['effortRate'] = []
+
+for key in effortRates:
+    effortPdFormat['effortRate'].append(effortRates[key])
+
+df = pd.DataFrame(effortPdFormat)
+
+print(statFunc(df))
+
+# client's savings rate
 # TODO
 
 # client's district criminality
