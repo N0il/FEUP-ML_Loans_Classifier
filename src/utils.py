@@ -110,7 +110,7 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
 # (creating clients total of monthly loans)
 def createLoanExpenses(loans):
-    # 1 - convert all loan dates
+    # 1 - convert all
     # 2 - calculate end date
     # 3 - for each loan calculate the total of loans being payed (loans with concurrent periods -> main loan start is before loan being iterated)
 

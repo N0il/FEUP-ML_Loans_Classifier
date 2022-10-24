@@ -16,7 +16,9 @@ from utils import convertIntDate, createClientAge, createLoanExpenses, createSal
 #ageGroups = createAgeGroup(ages)
 
 # client's effort rate result (above 40 -> yes, below 40% -> no)
-salaries = createSalary(transactions, 0.4)
+salaries = createSalary(transactions, 0.8)
+
+
 loanExpenses = createLoanExpenses(loans)
 
 effortRates = {}

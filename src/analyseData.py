@@ -19,7 +19,7 @@ def statFunc(x):
 
 (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
 
-""" salaries = createSalary(transactions, 0.1)
+salaries = createSalary(transactions, 0.8)
 
 salariesPdFormat = {}
 
@@ -34,21 +34,24 @@ df = pd.DataFrame(salariesPdFormat)
 
 print(statFunc(df))
 
-total = (df['salary'] == df['salary']).sum()
+# total = (df['salary'] == df['salary']).sum()
+total = df.count()[0]
 
 zeros = (df['salary'] == 0).sum()
 
-print(total)
+print("NUMBER OF SALARIES: ", total)
 
-print(zeros)
+print("NUMBER OF ZERO SALARIES: ", zeros)
 
-print((zeros / total) * 100)
-
-print(df.count()) """
+print("% OF ZERO SALARIES: ", (zeros / total) * 100)
 
 # loanExpenses = createLoanExpenses(loans)
 
 #print(loans['account_id'].value_counts())
 
-createAllExpenses(transactions)
+# createAllExpenses(transactions)
+
+
+# 
+
 
