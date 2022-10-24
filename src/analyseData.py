@@ -1,6 +1,8 @@
 from loadData import loadData
 from utils import createAllExpenses, createLoanExpenses, createSalary
 import pandas as pd
+import matplotlib.pyplot as plt
+
 
 from functools import partial
 q_25 = partial(pd.Series.quantile, q=0.25)
@@ -17,38 +19,63 @@ def statFunc(x):
     stats.loc["outliers+"] = x[x>stats.loc["upper_limit"]].count()
     return stats
 
+def printTable(df, name):
+    df.to_csv('../plots/'+name+".csv")
+
+def plotData(dfX, dfY, plotType, name=""):
+    if plotType=="bar":
+        plt.rcdefaults()
+        fig, ax = plt.subplots()
+
+        bars = ax.barh(range(dfX.size), dfX, align='center')
+        ax.set_yticks(range(dfY.size), labels=dfY)
+        # ax.invert_yaxis()  # labels read top-to-bottom
+        # ax.set_title('Top publishers by number of publications')
+        # ax.set_xlabel("Number of publications")
+        ax.bar_label(bars,label_type="center",color="white")
+    elif plotType == "hist":
+        plt.hist(dfX, dfY, rwidth=0.9, color='green')
+    else:
+        print("plotType not available")
+        return
+    if name == '':
+        plt.show()
+    else:
+        plt.savefig("../plots/"+name+".png", bbox_inches='tight')
+
+
 (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
 
-""" salaries = createSalary(transactions, 0.1)
+salaries = createSalary(transactions, 0.8)
+plotData(salaries, 50, 'hist');
 
-salariesPdFormat = {}
+# salariesPdFormat = {}
 
-salariesPdFormat['salary'] = []
+# salariesPdFormat['salary'] = []
 
-for key in salaries:
-    salariesPdFormat['salary'].append(salaries[key])
+# for key in salaries:
+#     salariesPdFormat['salary'].append(salaries[key])
 
-df = pd.DataFrame(salariesPdFormat)
+# df = pd.DataFrame(salariesPdFormat)
 
-# print(df.head())
+# # print(df.head())
 
-print(statFunc(df))
+# print(statFunc(df))
 
-total = (df['salary'] == df['salary']).sum()
+# total = (df['salary'] == df['salary']).sum()
 
-zeros = (df['salary'] == 0).sum()
+# zeros = (df['salary'] == 0).sum()
 
-print(total)
+# print(total)
 
-print(zeros)
+# print(zeros)
 
-print((zeros / total) * 100)
+# print((zeros / total) * 100)
 
-print(df.count()) """
+# print(df.count())
 
 # loanExpenses = createLoanExpenses(loans)
 
 #print(loans['account_id'].value_counts())
 
 createAllExpenses(transactions)
-
