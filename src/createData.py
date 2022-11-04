@@ -61,6 +61,7 @@ def createDistrictAvgSalary(accounts, districts):
 
 # attribute creation (district criminality rate)
 def createDistrictCriminalityRate(accounts, districts):
+    progressBar = Bar('Creating Crime Rate', max=accounts.shape[0], suffix='%(percent)d%% - %(eta)ds')
     districtCrimeRates = {}
 
     for index, row in accounts.iterrows():
@@ -71,4 +72,5 @@ def createDistrictCriminalityRate(accounts, districts):
                 innerow["no. of commited crimes '96 "] = 0
             if(row["district_id"] == innerow["code "]):
                 districtCrimeRates[row["account_id"]] = (int(innerow["no. of commited crimes '95 "]) + int(innerow["no. of commited crimes '96 "])) / int(innerow["no. of inhabitants"])
+        progressBar.next()
     return districtCrimeRates

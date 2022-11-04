@@ -2,6 +2,7 @@ from calendar import month
 import numpy as np
 import datetime
 from dateutil.relativedelta import relativedelta
+from progress.bar import Bar
 
 CURRENT_EPOCH = 1997
 
@@ -30,6 +31,7 @@ def calculateEndDate(startDate, duration):
 
 # (creating clients salary) -> maybe use samples (year by year instead of the whole table)
 def createSalary(transactions, occurrencesThreshold=0.8):
+    progressBar = Bar('Creating Salaries', max=transactions.shape[0], suffix='%(percent)d%% - %(eta)ds')
     # check only monthly recurrent income:
         # 1 - convert all transactions table dates
         # 2 - create a map for each client with an entry for each month (starting in the smallest one found until the furthest one)
@@ -43,7 +45,7 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
     # 1
     transactions['date'] = transactions['date'].apply(convertIntDate)
-    print(transactions['date'][0])
+    # print(transactions['date'][0])
 
     # 2 & 3
     clientsIncome = {}
@@ -65,12 +67,7 @@ def createSalary(transactions, occurrencesThreshold=0.8):
                     clientsIncome[row['account_id']][monthYearId] = amounts
                 else:
                     clientsIncome[row['account_id']][monthYearId].append(row['amount'])
-
-    values_view = clientsIncome.values()
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
-
-    print(first_value)
+        progressBar.next()
 
     # 4 & 5
     salaries = {}
@@ -99,14 +96,8 @@ def createSalary(transactions, occurrencesThreshold=0.8):
     # 6 TODO: only need the end date (or maybe ignore) if not ignore -> check if loan start date is before the salary end date
     #                                                                -> if it is not consider the district average salary
 
-    values_view = salaries.values()
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
-
-    print(first_value)
 
     return salaries
-
 
 # (creating clients total of monthly loans)
 def createLoanExpenses(loans):
@@ -141,10 +132,10 @@ def createLoanExpenses(loans):
         loansExpenses[row['loan_id']] = (concurrentLoansAmount, row['account_id'])
 
     # DEBUGGING
-    for index, row in loans.iterrows():
+    """ for index, row in loans.iterrows():
         if loansExpenses[row['loan_id']][0] != row['payments']:
             print("HERE: " + str(row['payments']))
-
+ """
     return loansExpenses
 
 # (creating clients total of monthly expenses, excluding loans)
@@ -175,11 +166,6 @@ def createAllExpenses(transactions):
                 else:
                     clientsExpenses[row['account_id']][monthYearId] += row['amount']
 
-    values_view = clientsExpenses.values()
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
-    print(first_value)
-
     # 4
     for accountId in clientsExpenses:
         totalAmount = 0
@@ -192,16 +178,12 @@ def createAllExpenses(transactions):
 
         clientsExpenses[accountId] = averageAmount
 
-    values_view = clientsExpenses.values()
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
-    print(first_value)
-
     return clientsExpenses
 
 # process all data to correspond to a loan row,
 # in order to combine all data with loans table
 def processFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates):
+    progressBar = Bar('Features Processing', max=loans.shape[0], suffix='%(percent)d%% - %(eta)ds')
     gendersByLoan = []
     ageGroupByLoan = []
     effortRateByLoan = []
@@ -234,5 +216,12 @@ def processFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
         effortRateByLoan.append(effortRates[loanId])
         savingsRateByLoan.append(savingsRates[loanId])
         distCrimeByLoan.append(districtCrimeRates[accountId])
+        progressBar.next()
 
     return (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan)
+
+
+def cleanData(loansDataFrame):
+    del loansDataFrame['loan_id']
+    del loansDataFrame['account_id']
+    return loansDataFrame
