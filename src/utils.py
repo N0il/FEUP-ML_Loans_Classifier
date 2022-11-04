@@ -115,8 +115,8 @@ def createLoanExpenses(loans):
     # 3 - for each loan calculate the total of loans being payed (loans with concurrent periods -> main loan start is before loan being iterated)
 
     # 1
-    loans['date'] = loans['date'].apply(convertIntDate)
-    print(loans['date'][0])
+    # loans['date'] = loans['date'].apply(convertIntDate)
+    # print(loans['date'][0])
 
     endDates = {}
     # 2
@@ -154,9 +154,9 @@ def createAllExpenses(transactions):
     # 3 - sum all debits per month (table missing)
     # 4 - make an average of the months
 
-    # 1
-    transactions['date'] = transactions['date'].apply(convertIntDate)
-    print(transactions['date'][0])
+    # 1 ALREADY DONE ABOVE
+    # transactions['date'] = transactions['date'].apply(convertIntDate)
+    # print(transactions['date'][0])
 
     clientsExpenses = {}
 
@@ -199,4 +199,40 @@ def createAllExpenses(transactions):
 
     return clientsExpenses
 
+# process all data to correspond to a loan row,
+# in order to combine all data with loans table
+def processFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates):
+    gendersByLoan = []
+    ageGroupByLoan = []
+    effortRateByLoan = []
+    savingsRateByLoan = []
+    distCrimeByLoan = []
 
+    clientsIndexes = clients.index
+
+    for index, row in loans.iterrows():
+        accountId = row['account_id']
+        loanId = row['loan_id']
+        clientId = None
+
+        # treating genders and ageGroups
+        for index, rowDisp in dispositions.iterrows():
+            if rowDisp['account_id'] == accountId:
+                clientId = rowDisp['client_id']
+
+        if clientId != None:
+            indexes = clients.index
+            indexesBool = clients['client_id'] == clientId
+            clientIndex = indexes[indexesBool][0]
+
+            gendersByLoan.append(genders[clientIndex])
+            ageGroupByLoan.append(ageGroups[clientIndex])
+        else:
+            print('ClientId None')
+
+        # treating the rest of the features
+        effortRateByLoan.append(effortRates[loanId])
+        savingsRateByLoan.append(savingsRates[loanId])
+        distCrimeByLoan.append(districtCrimeRates[accountId])
+
+    return (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan)

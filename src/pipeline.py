@@ -1,9 +1,11 @@
-import datetime
 from loadData import loadData
-from createData import createAgeGroup, createClientGender, createDistrictAvgSalary
-from utils import convertIntDate, createClientAge, createLoanExpenses, createSalary
+from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
+from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, processFeatures
 from analyseData import statFunc
 import pandas as pd
+from progress.bar import IncrementalBar
+
+progressBar = IncrementalBar('Data Processing', max=6) #, suffix='%(percent)d%%')
 
 from functools import partial
 q_25 = partial(pd.Series.quantile, q=0.25)
@@ -17,40 +19,48 @@ q_75.__name__ = "75%"
 # =============== Feature Creation ===============
 
 # client's gender
-#genders = createClientGender(clients)
+genders = createClientGender(clients)
+progressBar.next()
 
 # client's age group
-#ages = createClientAge(clients)
-#ageGroups = createAgeGroup(ages)
-
-# client's district average salary
-# TODO
-districtAvgSalary = createDistrictAvgSalary(accounts, districts)
-
-for id in districtAvgSalary:
-    print(districtAvgSalary[id])
+ages = createClientAge(clients)
+ageGroups = createAgeGroup(ages)
+progressBar.next()
 
 # client's effort rate result (above 40 -> yes, below 40% -> no)
+loans['date'] = loans['date'].apply(convertIntDate)
+districtAvgSalary = createDistrictAvgSalary(accounts, districts)
 salaries = createSalary(transactions, 0.8)
 loanExpenses = createLoanExpenses(loans)
+effortRates = createEffortRate(loans, salaries, loanExpenses, districtAvgSalary)
+progressBar.next()
 
-effortRates = {}
+# client's savings rate
+allExpenses = createAllExpenses(transactions)
+savingsRates = createSavingsRate(allExpenses, loanExpenses, loans, districtAvgSalary)
+progressBar.next()
 
-for loanId in loanExpenses:
-    accountId = loans['account_id'][1]
+# client's district criminality
+districtCrimeRates = createDistrictCriminalityRate(accounts, districts)
+progressBar.next()
 
-    if accountId in salaries:
-        if salaries[accountId] == 0:
-            effortRates[loanId] = 204
-            effortRates[loanId] = (loanExpenses[loanId][0] / districtAvgSalary[accountId]) * 100
-            effortRates[loanId] = 1 if effortRates[loanId] <= 40 else 0
-        else:
-            effortRates[loanId] = (loanExpenses[loanId][0] / salaries[accountId]) * 100
-    else:
-        effortRates[loanId] = 404
+# ========== Combining and Cleaning Data ==========
 
+(gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan) = processFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates)
+createdFeatures = pd.DataFrame({'loan_id': loans['loan_id'], 'Gender': gendersByLoan, 'AgeGroup': ageGroupByLoan, 'EffortRate': effortRateByLoan, 'SavingsRate': savingsRateByLoan, 'DistCrime': distCrimeByLoan})
+progressBar.next()
 
-# debugging
+loansDataFrame = pd.merge(createdFeatures, loans, on="loan_id")
+
+# ================ Model Creation =================
+# TODO
+
+# ================ Model Testing ==================
+# TODO
+
+loansDataFrame.head()
+
+""" # debugging
 for key in effortRates:
     print(effortRates[key])
 
@@ -66,25 +76,4 @@ df = pd.DataFrame(effortPdFormat)
 
 print(df.value_counts())
 
-print(statFunc(df))
-
-# client's savings rate
-# TODO
-
-# client's district criminality
-# TODO
-
-# ================ Combining Data =================
-# TODO
-
-# ================ Model Creation =================
-# TODO
-
-# ================ Model Testing ==================
-# TODO
-
-
-# DEBUGGING TESTS
-# createSalary(transactions)
-
-# createLoanExpenses(loans)
+print(statFunc(df)) """
