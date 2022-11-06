@@ -6,9 +6,11 @@ from progress.bar import Bar
 
 CURRENT_EPOCH = 1997
 
+
 def createClientAge(clients):
     ages = (CURRENT_EPOCH % 100) - clients['birth_number'] // 10000
     return ages
+
 
 def convertDate(date):
     year = '19' + date[:2]
@@ -18,6 +20,7 @@ def convertDate(date):
     convertedDate = datetime.datetime(int(year), int(month), int(day))
     return convertedDate
 
+
 def convertIntDate(date):
     year = '19' + str(date // 10000)
     month = str((date % 10000) // 100)
@@ -26,12 +29,14 @@ def convertIntDate(date):
     convertedDate = datetime.datetime(int(year), int(month), int(day))
     return convertedDate
 
+
 def calculateEndDate(startDate, duration):
     return startDate + relativedelta(months=+duration)
 
+
 # (creating clients salary) -> maybe use samples (year by year instead of the whole table)
 def createSalary(transactions, occurrencesThreshold=0.8):
-    progressBar = Bar('Creating Salaries', max=transactions.shape[0], suffix='%(percent)d%% - %(eta)ds')
+    progressBar = Bar('Creating Salaries', max=transactions.shape[0], suffix='%(percent)d%%               ')
     # check only monthly recurrent income:
         # 1 - convert all transactions table dates
         # 2 - create a map for each client with an entry for each month (starting in the smallest one found until the furthest one)
@@ -39,9 +44,6 @@ def createSalary(transactions, occurrencesThreshold=0.8):
         # 4 - check values that are recurrent in each array
         # 5 - the sum of the values of the previous step are the salary
         # 6 - also record the period of months to match with the other periods
-
-    # Calculus modes:
-        # A -
 
     # 1
     transactions['date'] = transactions['date'].apply(convertIntDate)
@@ -99,6 +101,7 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
     return salaries
 
+
 # (creating clients total of monthly loans)
 def createLoanExpenses(loans):
     # 1 - convert all
@@ -138,8 +141,10 @@ def createLoanExpenses(loans):
  """
     return loansExpenses
 
+
 # (creating clients total of monthly expenses, excluding loans)
 def createAllExpenses(transactions):
+    progressBar = Bar('Creating Expenses', max=transactions.shape[0], suffix='%(percent)d%%               ')
     # 1 - convert all dates
     # 2 - sum all negative transactions (withdraws) per month
     # 3 - sum all debits per month (table missing)
@@ -153,7 +158,7 @@ def createAllExpenses(transactions):
 
     # 2
     for index, row in transactions.iterrows():
-         if row['type'] == 'withdrawal':
+        if row['type'] == 'withdrawal':
             monthYearId = str(row['date'].year) + str(row['date'].month)
 
             if row['account_id'] not in clientsExpenses:
@@ -165,6 +170,8 @@ def createAllExpenses(transactions):
                     clientsExpenses[row['account_id']][monthYearId] = row['amount']
                 else:
                     clientsExpenses[row['account_id']][monthYearId] += row['amount']
+        progressBar.next()
+
 
     # 4
     for accountId in clientsExpenses:
@@ -179,49 +186,3 @@ def createAllExpenses(transactions):
         clientsExpenses[accountId] = averageAmount
 
     return clientsExpenses
-
-# process all data to correspond to a loan row,
-# in order to combine all data with loans table
-def processFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates):
-    progressBar = Bar('Features Processing', max=loans.shape[0], suffix='%(percent)d%% - %(eta)ds')
-    gendersByLoan = []
-    ageGroupByLoan = []
-    effortRateByLoan = []
-    savingsRateByLoan = []
-    distCrimeByLoan = []
-
-    clientsIndexes = clients.index
-
-    for index, row in loans.iterrows():
-        accountId = row['account_id']
-        loanId = row['loan_id']
-        clientId = None
-
-        # treating genders and ageGroups
-        for index, rowDisp in dispositions.iterrows():
-            if rowDisp['account_id'] == accountId:
-                clientId = rowDisp['client_id']
-
-        if clientId != None:
-            indexes = clients.index
-            indexesBool = clients['client_id'] == clientId
-            clientIndex = indexes[indexesBool][0]
-
-            gendersByLoan.append(genders[clientIndex])
-            ageGroupByLoan.append(ageGroups[clientIndex])
-        else:
-            print('ClientId None')
-
-        # treating the rest of the features
-        effortRateByLoan.append(effortRates[loanId])
-        savingsRateByLoan.append(savingsRates[loanId])
-        distCrimeByLoan.append(districtCrimeRates[accountId])
-        progressBar.next()
-
-    return (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan)
-
-
-def cleanData(loansDataFrame):
-    del loansDataFrame['loan_id']
-    del loansDataFrame['account_id']
-    return loansDataFrame
