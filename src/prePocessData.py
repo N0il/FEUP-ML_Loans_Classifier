@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 import numpy as np
 from progress.bar import IncrementalBar
@@ -54,7 +55,7 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
 
 
 def cleanData(loansDataFrame):
-    print('Removing Redundant Information...')
+    print('\nRemoving Redundant Information...')
     columnsToRemove =  ['loan_id', 'account_id']
 
     noRedundantData = loansDataFrame
@@ -85,6 +86,8 @@ def removeOutliers(loansDataFrame):
 
 
 def labelEncoding(loansDataFrame):
+    print('Encoding data...')
+    # gender and ageGroup encoding
     le = LabelEncoder()
 
     encodedGender = le.fit_transform(loansDataFrame['gender'])
@@ -96,7 +99,22 @@ def labelEncoding(loansDataFrame):
     encodedDataFrame["gender"] = encodedGender
     encodedDataFrame["ageGroup"] = encodedAgeGroup
 
-    print(encodedDataFrame.head())
+    # splitting date into year, month, day
+    years = []
+    months = []
+    days = []
+
+    for index, row in encodedDataFrame.iterrows():
+        date = datetime.datetime.strptime(row['date'], "%Y-%m-%d").date()
+        years.append(date.year)
+        months.append(date.month)
+        days.append(date.day)
+
+    encodedDataFrame = encodedDataFrame.drop("date", axis=1)
+
+    encodedDataFrame['year'] = years
+    encodedDataFrame['month'] = months
+    encodedDataFrame['day'] = days
 
     return encodedDataFrame
 

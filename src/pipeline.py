@@ -60,7 +60,7 @@ def createFeatures():
 
     loansDataFrame = pd.merge(createdFeatures, loans, on="loan_id")
 
-    print ('%s \nFinish Creating Data...\n %s' % (fg(2), attr(1)))
+    print ('%s \nFinish Creating Data... %s' % (fg(2), attr(1)))
     print ('%s %s' % (fg(0), attr(0)))
     return loansDataFrame
 
@@ -76,7 +76,7 @@ def processFeatures(loansDataFrame):
     print("\nInput Data AFTER Cleaning:\n")
     print(newLoansDataFrame.head())
 
-    print ('%s \nFinish Cleaning Data...\n %s' % (fg(2), attr(1)))
+    print ('%s \nFinish Cleaning Data... %s' % (fg(2), attr(1)))
     print ('%s %s' % (fg(0), attr(0)))
 
     return newLoansDataFrame
@@ -110,7 +110,7 @@ def createModel(loansDataFrame, testSize, modelType):
     # Train the model on training data
     model.fit(train_features, train_labels)
 
-    print ('%s \nFinish Creating and Training Model...\n %s' % (fg(2), attr(1)))
+    print ('%s \nFinish Creating and Training Model... %s' % (fg(2), attr(1)))
     print ('%s %s' % (fg(0), attr(0)))
     return (model, test_features, test_labels)
 
@@ -120,7 +120,7 @@ def testModel(model, test_features, test_labels):
     # Use the model to predict status using the test data
     predictions = model.predict(test_features)
 
-    print ('%s \nFinish Testing Model...\n %s' % (fg(2), attr(1)))
+    print ('%sFinish Testing Model... %s' % (fg(2), attr(1)))
     print ('%s %s' % (fg(0), attr(0)))
 
     errors = abs(predictions - test_labels)
