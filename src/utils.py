@@ -24,7 +24,11 @@ def convertDate(date):
 def convertFullDate(date):
     splitted = date.split("-")
 
-    convertedDate = datetime.datetime(int(splitted[0]), int(splitted[1]), int(splitted[2]))
+    day = splitted[2]
+    if len(day) > 2:
+        day = day[0:2]
+
+    convertedDate = datetime.datetime(int(splitted[0]), int(splitted[1]), int(day))
     return convertedDate
 
 
@@ -103,7 +107,6 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
     # 6 TODO: only need the end date (or maybe ignore) if not ignore -> check if loan start date is before the salary end date
     #                                                                -> if it is not consider the district average salary
-
 
     return salaries
 
