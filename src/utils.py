@@ -1,8 +1,8 @@
-from calendar import month
 import numpy as np
 import datetime
 from dateutil.relativedelta import relativedelta
 from progress.bar import Bar
+from colored import fg, attr
 
 CURRENT_EPOCH = 1997
 
@@ -47,12 +47,11 @@ def createSalary(transactions, occurrencesThreshold=0.8):
 
     # 1
     transactions['date'] = transactions['date'].apply(convertIntDate)
-    # print(transactions['date'][0])
 
     # 2 & 3
     clientsIncome = {}
 
-    for index, row in transactions.iterrows():
+    for _, row in transactions.iterrows():
         if row['type'] == 'credit':
             monthYearId = str(row['date'].year) + str(row['date'].month)
 
@@ -108,10 +107,6 @@ def createLoanExpenses(loans):
     # 2 - calculate end date
     # 3 - for each loan calculate the total of loans being payed (loans with concurrent periods -> main loan start is before loan being iterated)
 
-    # 1
-    # loans['date'] = loans['date'].apply(convertIntDate)
-    # print(loans['date'][0])
-
     endDates = {}
     # 2
     for index, row in loans.iterrows():
@@ -157,7 +152,7 @@ def createAllExpenses(transactions):
     clientsExpenses = {}
 
     # 2
-    for index, row in transactions.iterrows():
+    for _, row in transactions.iterrows():
         if row['type'] == 'withdrawal':
             monthYearId = str(row['date'].year) + str(row['date'].month)
 
@@ -186,3 +181,13 @@ def createAllExpenses(transactions):
         clientsExpenses[accountId] = averageAmount
 
     return clientsExpenses
+
+
+def log(text, verbose, colored=False):
+    if not verbose:
+        return
+    if colored:
+        print(text % (fg(2), attr(1)))
+        print('%s %s' % (fg(0), attr(0)))
+    else:
+        print(text)

@@ -1,6 +1,6 @@
 from loadData import loadData
 from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
-from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary
+from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, log
 from prePocessData import combineFeatures, cleanData, labelEncoding, processZeroSalaries, removeOutliers
 import pandas as pd
 import numpy as np
@@ -16,7 +16,7 @@ from sklearn.preprocessing import OneHotEncoder
 OUTPUT_DATA_PATH = './../data/output/'
 
 
-def createFeatures():
+def createFeatures(verbose):
     progressBar = IncrementalBar('Creating data...', max=6, suffix='[%(index)d / %(max)d]               ') #, suffix='%(percent)d%%')
 
     # ================= Loading Data =================
@@ -60,29 +60,26 @@ def createFeatures():
 
     loansDataFrame = pd.merge(createdFeatures, loans, on="loan_id")
 
-    print ('%s \nFinish Creating Data... %s' % (fg(2), attr(1)))
-    print ('%s %s' % (fg(0), attr(0)))
+    log('%s \nFinish Creating Data... %s', verbose, True)
     return loansDataFrame
 
 
-def processFeatures(loansDataFrame):
-    print("Input Data BEFORE Cleaning:\n")
-    print(loansDataFrame.head())
+def processFeatures(loansDataFrame, verbose):
+    log("Input Data BEFORE Cleaning:\n", verbose)
+    log(loansDataFrame.head(), verbose)
 
     newLoansDataFrame = cleanData(loansDataFrame)
     newLoansDataFrame = labelEncoding(newLoansDataFrame)
     newLoansDataFrame = removeOutliers(newLoansDataFrame)
 
-    print("\nInput Data AFTER Cleaning:\n")
-    print(newLoansDataFrame.head())
+    log("\nInput Data AFTER Cleaning:\n", verbose)
+    log(newLoansDataFrame.head(), verbose)
 
-    print ('%s \nFinish Cleaning Data... %s' % (fg(2), attr(1)))
-    print ('%s %s' % (fg(0), attr(0)))
-
+    log('%s \nFinish Cleaning Data... %s', verbose, True)
     return newLoansDataFrame
 
 
-def createModel(loansDataFrame, testSize, modelType):
+def createModel(loansDataFrame, testSize, modelType, verbose):
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
 
@@ -98,10 +95,10 @@ def createModel(loansDataFrame, testSize, modelType):
     # Split the data into training and testing sets
     train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size=testSize, random_state=42)
 
-    print('Training Features Shape:', train_features.shape)
-    print('Training Labels Shape:', train_labels.shape)
-    print('Testing Features Shape:', test_features.shape)
-    print('Testing Labels Shape:', test_labels.shape)
+    log('Training Features Shape:' + str(train_features.shape), verbose)
+    log('Training Labels Shape:' + str(train_labels.shape), verbose)
+    log('Testing Features Shape:' + str(test_features.shape), verbose)
+    log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
     if modelType == 'rf':
         # Instantiate model with 1000 decision trees
@@ -110,46 +107,44 @@ def createModel(loansDataFrame, testSize, modelType):
     # Train the model on training data
     model.fit(train_features, train_labels)
 
-    print ('%s \nFinish Creating and Training Model... %s' % (fg(2), attr(1)))
-    print ('%s %s' % (fg(0), attr(0)))
+    log('%s \nFinish Creating and Training Model... %s', verbose, True)
     return (model, test_features, test_labels)
 
 
-# TODO: untested and incomplete!!
-def testModel(model, test_features, test_labels):
+# TODO: incomplete!!
+def testModel(model, test_features, test_labels, verbose):
     # Use the model to predict status using the test data
     predictions = model.predict(test_features)
 
-    print ('%sFinish Testing Model... %s' % (fg(2), attr(1)))
-    print ('%s %s' % (fg(0), attr(0)))
+    log('%sFinish Testing Model... %s', verbose, True)
 
     errors = abs(predictions - test_labels)
     mape = 100 * (errors / test_labels)
     # Calculate and display accuracy
     accuracy = 100 - np.mean(mape)
-    print('Accuracy:', round(accuracy, 2), '%.')
+    log('Accuracy:' + str(round(accuracy, 2)) + '%.', verbose)
 
 
-def runPipeline(dataFromFile=True, saveCleanData=True, testSize=0.25, modelType='rf'):
+def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose):
     # =============== Creating Features ===============
 
     if not dataFromFile:
-        loansDataFrame = createFeatures()
+        loansDataFrame = createFeatures(verbose)
         loansDataFrame.to_csv(OUTPUT_DATA_PATH+'createdData.csv', index=False)
     else:
         loansDataFrame = pd.read_csv(OUTPUT_DATA_PATH+'createdData.csv', sep=",")
 
     # ================ Cleaning Data ==================
 
-    loansDataFrame = processFeatures(loansDataFrame)
+    loansDataFrame = processFeatures(loansDataFrame, verbose)
 
     if saveCleanData:
         loansDataFrame.to_csv(OUTPUT_DATA_PATH+'createdData_CLEAN.csv', index=False)
 
     # ================ Creating Model =================
 
-    (model, test_features, test_labels) = createModel(loansDataFrame, testSize, modelType)
+    (model, test_features, test_labels) = createModel(loansDataFrame, testSize, modelType, verbose)
 
     # ================ Testing Model ==================
 
-    testModel(model, test_features, test_labels)
+    testModel(model, test_features, test_labels, verbose)

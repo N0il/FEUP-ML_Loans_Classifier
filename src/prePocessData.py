@@ -6,6 +6,9 @@ import sys
 from scipy import stats
 from progress.bar import Bar
 from sklearn.preprocessing import LabelEncoder
+from dateutil import parser
+
+from utils import convertDate
 
 
 # process all data to correspond to a loan row,
@@ -21,13 +24,13 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
 
     clientsIndexes = clients.index
 
-    for index, row in loans.iterrows():
+    for _, row in loans.iterrows():
         accountId = row['account_id']
         loanId = row['loan_id']
         clientId = None
 
         # treating genders and ageGroups
-        for index, rowDisp in dispositions.iterrows():
+        for _, rowDisp in dispositions.iterrows():
             if rowDisp['account_id'] == accountId:
                 clientId = rowDisp['client_id']
 
@@ -104,8 +107,9 @@ def labelEncoding(loansDataFrame):
     months = []
     days = []
 
-    for index, row in encodedDataFrame.iterrows():
-        date = datetime.datetime.strptime(row['date'], "%Y-%m-%d").date()
+    for _, row in encodedDataFrame.iterrows():
+        date = convertDate(str(row['date']))
+
         years.append(date.year)
         months.append(date.month)
         days.append(date.day)

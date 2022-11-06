@@ -1,4 +1,7 @@
+import datetime
 import pandas as pd
+
+from utils import convertIntDate
 
 INPUT_DATA_PATH = './../data/input/'
 
@@ -13,5 +16,3 @@ def loadData():
     transactions = pd.read_csv(INPUT_DATA_PATH+'trans_dev.csv', sep=";", dtype={'trans_id': 'int', 'account_id': 'int', 'date':'int', 'type':'str', 'operation':'str', 'amount':'float', 'balance':'float', 'k_symbol':'str', 'bank':'str', 'account':'str'})
 
     return (accounts, cards, clients, dispositions, districts, loans, transactions)
-
-(accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()

@@ -22,25 +22,22 @@ def createAgeGroup(ages):
 
 # attribute creation (effort rate)
 def createEffortRate(loans, salaries, loanExpenses, districtAvgSalary):
-    print(loans.head())
     effortRates = {}
 
     for loanId in loanExpenses:
-        for index, row in loans.iterrows():
+        for _, row in loans.iterrows():
             if row['loan_id'] == loanId:
                 accountId = row['account_id']
 
         if accountId in salaries:
             if salaries[accountId] == 0:
-                print("203")
                 effortRates[loanId] = (loanExpenses[loanId][0] / districtAvgSalary[accountId]) * 100
             else:
-                print("200")
                 effortRates[loanId] = (loanExpenses[loanId][0] / salaries[accountId]) * 100
         else:
-            print("404")
             effortRates[loanId] = (loanExpenses[loanId][0] / districtAvgSalary[accountId]) * 100
         # effortRates[loanId] = 1 if effortRates[loanId] <= 40 else 0
+        effortRates[loanId] = round(effortRates[loanId], 2)
 
     return effortRates
 
@@ -50,17 +47,16 @@ def createSavingsRate(allExpenses, loanExpenses, loans, salaries):
     savingsRates = {}
 
     for loanId in loanExpenses:
-        for index, row in loans.iterrows():
+        for _, row in loans.iterrows():
             if row['loan_id'] == loanId:
                 accountId = row['account_id']
-
-        print("AC: ", accountId)
 
         if accountId in allExpenses:
             savingsRates[loanId] = ((salaries[accountId]-(loanExpenses[loanId][0] + allExpenses[accountId])) / salaries[accountId]) * 100
         else:
             savingsRates[loanId] = ((salaries[accountId]-loanExpenses[loanId][0]) / salaries[accountId]) * 100
 
+        savingsRates[loanId] = round(savingsRates[loanId], 2)
     return savingsRates
 
 
@@ -68,10 +64,10 @@ def createSavingsRate(allExpenses, loanExpenses, loans, salaries):
 def createDistrictAvgSalary(accounts, districts):
     avgSalaries = {}
 
-    for index, row in accounts.iterrows():
-        for innerIndex, innerow in districts.iterrows():
-           if(row["district_id"] == innerow["code "]):
-                avgSalaries[row["account_id"]] = float(innerow["average salary "])
+    for _, row in accounts.iterrows():
+        for _, distRow in districts.iterrows():
+           if(row["district_id"] == distRow["code "]):
+                avgSalaries[row["account_id"]] = float(distRow["average salary "])
     return avgSalaries
 
 
@@ -80,13 +76,13 @@ def createDistrictCriminalityRate(accounts, districts):
     progressBar = Bar('Creating Crime Rate', max=accounts.shape[0], suffix='%(percent)d%% - %(eta)ds')
     districtCrimeRates = {}
 
-    for index, row in accounts.iterrows():
-        for innerIndex, innerow in districts.iterrows():
-            if innerow["no. of commited crimes '95 "] == '?':
-                innerow["no. of commited crimes '95 "] = 0
-            if innerow["no. of commited crimes '96 "] == '?':
-                innerow["no. of commited crimes '96 "] = 0
-            if(row["district_id"] == innerow["code "]):
-                districtCrimeRates[row["account_id"]] = ((int(innerow["no. of commited crimes '95 "]) + int(innerow["no. of commited crimes '96 "])) / int(innerow["no. of inhabitants"])) * 100
+    for _, row in accounts.iterrows():
+        for _, distRow in districts.iterrows():
+            if distRow["no. of commited crimes '95 "] == '?':
+                distRow["no. of commited crimes '95 "] = 0
+            if distRow["no. of commited crimes '96 "] == '?':
+                distRow["no. of commited crimes '96 "] = 0
+            if(row["district_id"] == distRow["code "]):
+                districtCrimeRates[row["account_id"]] = ((int(distRow["no. of commited crimes '95 "]) + int(distRow["no. of commited crimes '96 "])) / int(distRow["no. of inhabitants"])) * 100
         progressBar.next()
     return districtCrimeRates
