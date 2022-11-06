@@ -1,14 +1,11 @@
-import datetime
 import pandas as pd
 import numpy as np
-from progress.bar import IncrementalBar
 import sys
 from scipy import stats
 from progress.bar import Bar
 from sklearn.preprocessing import LabelEncoder
-from dateutil import parser
 
-from utils import convertDate
+from utils import convertFullDate
 
 
 # process all data to correspond to a loan row,
@@ -108,7 +105,7 @@ def labelEncoding(loansDataFrame):
     days = []
 
     for _, row in encodedDataFrame.iterrows():
-        date = convertDate(str(row['date']))
+        date = convertFullDate(str(row['date']))
 
         years.append(date.year)
         months.append(date.month)

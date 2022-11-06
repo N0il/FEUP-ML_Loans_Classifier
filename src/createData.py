@@ -84,5 +84,6 @@ def createDistrictCriminalityRate(accounts, districts):
                 distRow["no. of commited crimes '96 "] = 0
             if(row["district_id"] == distRow["code "]):
                 districtCrimeRates[row["account_id"]] = ((int(distRow["no. of commited crimes '95 "]) + int(distRow["no. of commited crimes '96 "])) / int(distRow["no. of inhabitants"])) * 100
+                districtCrimeRates[row["account_id"]] = round(districtCrimeRates[row["account_id"]], 2)
         progressBar.next()
     return districtCrimeRates

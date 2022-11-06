@@ -36,6 +36,7 @@ def createFeatures(verbose):
 
     # client's effort rate result (above 40 -> yes, below 40% -> no)
     loans['date'] = loans['date'].apply(convertIntDate)
+
     districtAvgSalary = createDistrictAvgSalary(accounts, districts)
     salaries = createSalary(transactions, 0.8)
     salaries = processZeroSalaries(salaries, districtAvgSalary, True)

@@ -21,6 +21,13 @@ def convertDate(date):
     return convertedDate
 
 
+def convertFullDate(date):
+    splitted = date.split("-")
+
+    convertedDate = datetime.datetime(int(splitted[0]), int(splitted[1]), int(splitted[2]))
+    return convertedDate
+
+
 def convertIntDate(date):
     year = '19' + str(date // 10000)
     month = str((date % 10000) // 100)
@@ -178,7 +185,7 @@ def createAllExpenses(transactions):
 
         averageAmount = totalAmount / nMonths
 
-        clientsExpenses[accountId] = averageAmount
+        clientsExpenses[accountId] = round(averageAmount)
 
     return clientsExpenses
 
