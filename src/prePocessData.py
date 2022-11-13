@@ -10,7 +10,7 @@ from utils import convertFullDate
 
 # process all data to correspond to a loan row,
 # in order to combine all data with loans table
-def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates, expenses):
+def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates, expenses, ages):
     progressBar = Bar('Features Processing', max=loans.shape[0], suffix='%(percent)d%% - %(eta)ds               ')
     gendersByLoan = []
     ageGroupByLoan = []
@@ -18,8 +18,7 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
     savingsRateByLoan = []
     distCrimeByLoan = []
     expensesByLoan =  []
-
-    clientsIndexes = clients.index
+    agesByLoan = []
 
     for _, row in loans.iterrows():
         accountId = row['account_id']
@@ -38,6 +37,7 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
 
             gendersByLoan.append(genders[clientIndex])
             ageGroupByLoan.append(ageGroups[clientIndex])
+            agesByLoan.append(ages[clientIndex])
         else:
             print('ClientId None')
 
@@ -51,7 +51,7 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
             expensesByLoan.append(0)
         progressBar.next()
 
-    return (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan, expensesByLoan)
+    return (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan, expensesByLoan, agesByLoan)
 
 
 def cleanData(loansDataFrame):
@@ -113,7 +113,7 @@ def labelEncoding(loansDataFrame):
 
     encodedDataFrame = encodedDataFrame.drop("date", axis=1)
 
-    encodedDataFrame['year'] = years
+    # encodedDataFrame['year'] = years # Year doesn't make sense, because the model is going to be used in future years
     encodedDataFrame['month'] = months
     encodedDataFrame['day'] = days
 

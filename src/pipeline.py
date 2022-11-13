@@ -12,6 +12,14 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
+import matplotlib.pyplot as plt
+
+
 
 OUTPUT_DATA_PATH = './../data/output/'
 
@@ -55,8 +63,8 @@ def createFeatures(verbose):
 
     # =============== Combining Data ===============
 
-    (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan, expensesByLoan) = combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates, allExpenses)
-    createdFeatures = pd.DataFrame({'loan_id': loans['loan_id'], 'gender': gendersByLoan, 'ageGroup': ageGroupByLoan, 'effortRate': effortRateByLoan, 'savingsRate': savingsRateByLoan, 'distCrime': distCrimeByLoan, 'expenses': expensesByLoan})
+    (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan, expensesByLoan, agesByLoan) = combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates, allExpenses, ages)
+    createdFeatures = pd.DataFrame({'loan_id': loans['loan_id'], 'gender': gendersByLoan, 'ageGroup': ageGroupByLoan, 'effortRate': effortRateByLoan, 'savingsRate': savingsRateByLoan, 'distCrime': distCrimeByLoan, 'expenses': expensesByLoan, 'age': agesByLoan})
     progressBar.next()
 
     loansDataFrame = pd.merge(createdFeatures, loans, on="loan_id")
@@ -103,7 +111,7 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
 
     if modelType == 'rf':
         # Instantiate model with 1000 decision trees
-        model = RandomForestRegressor(n_estimators = 1000, random_state = 42)
+        model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
 
     # Train the model on training data
     model.fit(train_features, train_labels)
@@ -115,16 +123,20 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
 # TODO: incomplete!!
 def testModel(model, test_features, test_labels, verbose):
     # Use the model to predict status using the test data
-    predictions = model.predict(test_features)
-
+    predictions = model.predict_proba(test_features)
+    # roc curve for models
     log('%sFinish Testing Model... %s', verbose, True)
 
-    errors = abs(predictions - test_labels)
-    mape = 100 * (errors / test_labels)
-    # Calculate and display accuracy
-    accuracy = 100 - np.mean(mape)
-    log('Accuracy:' + str(round(accuracy, 2)) + '%.', verbose)
+    aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
 
+    """
+    #plot
+    fpr, tpr, _ = metrics.roc_curve(test_labels, predictions[:, 1])
+    plt.plot(fpr,tpr,label="auc="+str(aucScore))
+    plt.show()
+    """
+
+    log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
 def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose):
     # =============== Creating Features ===============
