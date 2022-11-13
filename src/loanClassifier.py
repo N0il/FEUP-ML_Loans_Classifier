@@ -3,7 +3,7 @@ import sys
 import time
 from pipeline import runPipeline
 
-MODEL_TYPES = ['rf']
+MODEL_TYPES = ['rf', 'svm', 'naive', 'nn']
 BOOL_OPTIONS = ['-f' '-c', '-s', '-m']
 
 def main(args):

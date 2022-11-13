@@ -18,7 +18,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 import matplotlib.pyplot as plt
-
+from sklearn import svm
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
 
 
 OUTPUT_DATA_PATH = './../data/output/'
@@ -112,6 +114,12 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
     if modelType == 'rf':
         # Instantiate model with 1000 decision trees
         model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
+    elif modelType == 'svm':
+        model = svm.SVC()
+    elif modelType == 'naive':
+        model = GaussianNB()
+    elif modelType == 'nn':
+        model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 
     # Train the model on training data
     model.fit(train_features, train_labels)
