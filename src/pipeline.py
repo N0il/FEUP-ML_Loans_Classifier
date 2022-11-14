@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
+from sklearn.feature_selection import RFE
 
 
 OUTPUT_DATA_PATH = './../data/output/'
@@ -89,6 +90,16 @@ def processFeatures(loansDataFrame, verbose):
     log('%s \nFinish Cleaning Data... %s', verbose, True)
     return newLoansDataFrame
 
+def featureSelection(model, labels, features, verbose):
+    selector = RFE(model, n_features_to_select=1)
+    selector = selector.fit(features, labels)
+
+    log('\nNum Features: {feats}'.format(feats=selector.n_features_), verbose)
+    log('Selected Features: {sup}'.format(sup=selector.support_), verbose)
+    log('Feature Ranking: {rank}'.format(rank=selector.ranking_), verbose)
+
+    return selector.support_
+
 
 def createModel(loansDataFrame, testSize, modelType, verbose):
     # Labels are the values to predict
@@ -121,6 +132,11 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
     elif modelType == 'nn':
         model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 
+    # Selecting features
+    selectedFeaturesMask = featureSelection(model, labels, features, verbose)
+
+    # TODO: use this mask
+
     # Train the model on training data
     model.fit(train_features, train_labels)
 
@@ -137,14 +153,8 @@ def testModel(model, test_features, test_labels, verbose):
 
     aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
 
-    """
-    #plot
-    fpr, tpr, _ = metrics.roc_curve(test_labels, predictions[:, 1])
-    plt.plot(fpr,tpr,label="auc="+str(aucScore))
-    plt.show()
-    """
-
     log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
+
 
 def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose):
     # =============== Creating Features ===============
