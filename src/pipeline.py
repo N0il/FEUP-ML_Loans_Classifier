@@ -115,11 +115,14 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
         # Instantiate model with 1000 decision trees
         model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
     elif modelType == 'svm':
-        model = svm.SVC()
+        model = svm.SVC(probability=True)
     elif modelType == 'naive':
         model = GaussianNB()
     elif modelType == 'nn':
-        model = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+        model = MLPClassifier(solver='adam', alpha=1e-5, random_state=1)
+    else:
+         print("\nModel Not Detected! Possible Models:\n rf\n svm\n naive\n nn\n")
+         exit()
 
     # Train the model on training data
     model.fit(train_features, train_labels)
