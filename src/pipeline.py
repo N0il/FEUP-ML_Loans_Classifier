@@ -1,3 +1,4 @@
+import copy
 from loadData import loadData
 from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
 from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, log
@@ -5,6 +6,7 @@ from prePocessData import combineFeatures, cleanData, labelEncoding, processZero
 import pandas as pd
 import numpy as np
 from progress.bar import IncrementalBar
+from progress.bar import Bar
 import sys
 from scipy import stats
 from colored import fg, bg, attr
@@ -90,15 +92,65 @@ def processFeatures(loansDataFrame, verbose):
     log('%s \nFinish Cleaning Data... %s', verbose, True)
     return newLoansDataFrame
 
-def featureSelection(model, labels, features, verbose):
+
+def featureSelectionRank(model, labels, features, verbose):
     selector = RFE(model, n_features_to_select=1)
     selector = selector.fit(features, labels)
+    log('\nFeature Ranking: {rank}\n'.format(rank=selector.ranking_), verbose)
 
-    log('\nNum Features: {feats}'.format(feats=selector.n_features_), verbose)
-    log('Selected Features: {sup}'.format(sup=selector.support_), verbose)
-    log('Feature Ranking: {rank}'.format(rank=selector.ranking_), verbose)
+    return selector.ranking_
 
-    return selector.support_
+
+def trainModel(model, train_features, train_labels, verbose):
+    progressBar = Bar('Selecting Features', max=len(train_features[0]), suffix='%(percent)d%% - %(eta)ds               ')
+
+    bestAuc = 0
+    bestMask = []
+
+    # Test model against multiple features groups
+    for i in range(len(train_features[0])):
+        selector = RFE(model, n_features_to_select=(len(train_features[0])-i))
+        selector = selector.fit(train_features, train_labels)
+        mask = selector.support_
+        print("MASK: ", mask)
+
+        features = []
+        for r in range(len(train_features)):
+            row = []
+            for c in range(len(train_features[r])):
+                if mask[c]:
+                    row.append(train_features[r][c])
+            features.append(row)
+
+        # Train the model on training data
+        model.fit(features, train_labels)
+        predictions = model.predict_proba(features)
+        aucScore = roc_auc_score(train_labels, predictions[:, 1]) * 100
+        print("AUC: ", aucScore, "\n")
+
+        # update best score and mask
+        if aucScore > bestAuc:
+            bestAuc = aucScore
+            bestMask = mask
+
+        progressBar.next()
+
+    # Train with the best features
+    features = []
+    for r in range(len(train_features)):
+        row = []
+        for c in range(len(bestMask)):
+            if bestMask[c]:
+                row.append(train_features[r][c])
+        features.append(row)
+
+    # Train the model on training data
+    model.fit(features, train_labels)
+
+    featuresMaskString = ' | '.join([str(elem) for elem in bestMask])
+    log('Features after selection:' + featuresMaskString, verbose)
+
+    return model
 
 
 def createModel(loansDataFrame, testSize, modelType, verbose):
@@ -111,13 +163,16 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
     # Saving feature names for later use
     featuresList = list(features.columns)
 
+    featuresString = ' | '.join([str(elem) for elem in featuresList])
+    log('Features before selection:' + featuresString, verbose)
+
     # Convert to numpy array
     features = np.array(features)
 
     # Split the data into training and testing sets
     train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size=testSize, random_state=42)
 
-    log('Training Features Shape:' + str(train_features.shape), verbose)
+    log('\nTraining Features Shape:' + str(train_features.shape), verbose)
     log('Training Labels Shape:' + str(train_labels.shape), verbose)
     log('Testing Features Shape:' + str(test_features.shape), verbose)
     log('Testing Labels Shape:' + str(test_labels.shape), verbose)
@@ -135,22 +190,20 @@ def createModel(loansDataFrame, testSize, modelType, verbose):
          print("\nModel Not Detected! Possible Models:\n rf\n svm\n naive\n nn\n")
          exit()
 
-    # Selecting features
-    selectedFeaturesMask = featureSelection(model, labels, features, verbose)
+    # Show features ranking
+    featureSelectionRank(model, labels, features, verbose)
 
-    # TODO: use this mask
-
-    # Train the model on training data
-    model.fit(train_features, train_labels)
+    # Feature selection and training model
+    model = trainModel(model, train_features, train_labels, verbose)
 
     log('%s \nFinish Creating and Training Model... %s', verbose, True)
     return (model, test_features, test_labels)
 
 
-# TODO: incomplete!!
 def testModel(model, test_features, test_labels, verbose):
     # Use the model to predict status using the test data
     predictions = model.predict_proba(test_features)
+
     # roc curve for models
     log('%sFinish Testing Model... %s', verbose, True)
 
