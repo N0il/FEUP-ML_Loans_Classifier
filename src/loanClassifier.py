@@ -4,7 +4,6 @@ import time
 from pipeline import runPipeline
 
 MODEL_TYPES = ['rf', 'svm', 'naive', 'nn']
-BOOL_OPTIONS = ['-f' '-c', '-s', '-m']
 
 def main(args):
     start_time = time.time()
@@ -19,10 +18,12 @@ def main(args):
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-f', '--dataFromFile', action='store_true')
     parser.add_argument('-c', '--saveCleanData', action='store_true')
+    parser.add_argument('-b', '--balanceTestData', action='store_true')
+    parser.add_argument('-n', '--selectNFeatures', type=int, default=99)
 
     parsedArgs = parser.parse_args()
 
-    runPipeline(parsedArgs.dataFromFile, parsedArgs.saveCleanData, parsedArgs.trainDataSize, parsedArgs.modelType, parsedArgs.verbose)
+    runPipeline(parsedArgs.dataFromFile, parsedArgs.saveCleanData, parsedArgs.trainDataSize, parsedArgs.modelType, parsedArgs.verbose, parsedArgs.balanceTestData, parsedArgs.selectNFeatures)
 
     print("\nExecution time: {elapsed:.2f} min".format(elapsed=((time.time() - start_time) / 60)))
 
