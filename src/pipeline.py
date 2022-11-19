@@ -26,16 +26,18 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.feature_selection import RFE
 from imblearn.over_sampling import SMOTE
 from collections import Counter
+import csv
+import re
 
 OUTPUT_DATA_PATH = './../data/output/'
 
 
-def createFeatures(verbose):
+def createFeatures(verbose, path):
     progressBar = IncrementalBar('Creating data...', max=6, suffix='[%(index)d / %(max)d]               ') #, suffix='%(percent)d%%')
 
     # ================= Loading Data =================
 
-    (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData()
+    (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData(path)
 
     # =============== Feature Creation ===============
 
@@ -79,13 +81,14 @@ def createFeatures(verbose):
     return loansDataFrame
 
 
-def processFeatures(loansDataFrame, verbose):
+def processFeatures(loansDataFrame, verbose, removeOutliersOn=True):
     log("Input Data BEFORE Cleaning:\n", verbose)
     log(loansDataFrame.head(), verbose)
 
     newLoansDataFrame = cleanData(loansDataFrame)
     newLoansDataFrame = labelEncoding(newLoansDataFrame)
-    newLoansDataFrame = removeOutliers(newLoansDataFrame)
+    if removeOutliersOn:
+        newLoansDataFrame = removeOutliers(newLoansDataFrame)
 
     log("\nInput Data AFTER Cleaning:\n", verbose)
     log(newLoansDataFrame.head(), verbose)
@@ -167,7 +170,7 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
     # Trim the test features accordingly
     trimmedTestFeatures = []
 
-    for r in range(len(testFeatures)):
+    for r in range(len(testFeatures[0])):
         testRow = []
         for c in range(len(bestMask)):
             if bestMask[c]:
@@ -183,7 +186,7 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
     return (model, trimmedTestFeatures)
 
 
-def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFeatures):
+def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFeatures, randomState, testMode):
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
 
@@ -199,13 +202,32 @@ def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFe
     # Convert to numpy array
     features = np.array(features)
 
+    if randomState == 0:
+        randomState = None
+
     # Split the data into training and testing sets
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size=testSize, random_state=42)
+    if testMode == 'none':
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, train_size=testSize, random_state=randomState)
+    else:
+        # train data
+        # train_features, _, train_labels, _ = train_test_split(features, labels, train_size=1, random_state=randomState)
+        train_features = features
+        train_labels = labels
+        # TODO: missing do the TRANSPOSE on the 2 above
+
+        # test data
+        dataFrame = pd.read_csv(testMode, sep=",")
+        processedDataFrame = processFeatures(dataFrame, False, False)
+        t_labels = np.array(processedDataFrame['status'])
+        test_features = processedDataFrame.drop('status', axis = 1)  # TODO: missing do the TRANSPOSE
+        #_, test_features, _, _ = train_test_split(t_features, t_labels, test_size=1, random_state=None)
+        test_labels = None
 
     log('\nTraining Features Shape:' + str(train_features.shape), verbose)
     log('Training Labels Shape:' + str(train_labels.shape), verbose)
     log('Testing Features Shape:' + str(test_features.shape), verbose)
-    log('Testing Labels Shape:' + str(test_labels.shape), verbose)
+    if test_labels != None:
+        log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
     if modelType == 'rf':
         # Instantiate model with 1000 decision trees
@@ -234,22 +256,33 @@ def testModel(model, test_features, test_labels, verbose):
     # Use the model to predict status using the test data
     predictions = model.predict_proba(test_features)
 
-    # roc curve for models
+    classesOrderString = ' '.join([str(elem) for elem in model.classes_])
+
+    log("Classes order: "+classesOrderString+"\n", verbose)
+
+    with open(OUTPUT_DATA_PATH+"predictions"+"_"+type(model).__name__+".csv","w+", newline='',) as my_csv:
+        csvWriter = csv.writer(my_csv, delimiter=',')
+        csvWriter.writerows(predictions)
+
     log('%sFinish Testing Model... %s', verbose, True)
 
-    aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
+    # roc curve for models
+    if test_labels !=  None:
+        aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
 
-    log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
+        log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
 
-def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose, balance, selectNFeatures):
+def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode):
+    createdDataFile = re.sub('\..*$', '', createdDataName)
+
     # =============== Creating Features ===============
 
     if not dataFromFile:
-        loansDataFrame = createFeatures(verbose)
-        loansDataFrame.to_csv(OUTPUT_DATA_PATH+'createdData.csv', index=False)
+        loansDataFrame = createFeatures(verbose, path)
+        loansDataFrame.to_csv(OUTPUT_DATA_PATH+createdDataFile+'.csv', index=False)
     else:
-        loansDataFrame = pd.read_csv(OUTPUT_DATA_PATH+'createdData.csv', sep=",")
+        loansDataFrame = pd.read_csv(OUTPUT_DATA_PATH+createdDataFile+'.csv', sep=",")
 
     # ================ Cleaning Data ==================
 
@@ -260,7 +293,7 @@ def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose, balan
 
     # ================ Creating Model =================
 
-    (model, test_features, test_labels) = createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFeatures)
+    (model, test_features, test_labels) = createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFeatures, randomState, testMode)
 
     # ================ Testing Model ==================
 
