@@ -1,25 +1,15 @@
-import copy
 from loadData import loadData
 from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
 from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, log
 from prePocessData import combineFeatures, cleanData, labelEncoding, processZeroSalaries, removeOutliers
+
 import pandas as pd
 import numpy as np
 from progress.bar import IncrementalBar
 from progress.bar import Bar
-import sys
-from scipy import stats
-from colored import fg, bg, attr
-import time
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import metrics
-import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
