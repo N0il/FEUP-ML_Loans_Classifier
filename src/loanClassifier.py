@@ -3,7 +3,7 @@ import sys
 import time
 from pipeline import runPipeline
 
-MODEL_TYPES = ['rf', 'svm', 'naive', 'nn']
+MODEL_TYPES = ['rf', 'lr', 'dt', 'gb', 'pr', 'svm', 'naive', 'nn']
 INPUT_DATA_PATH = './../data/input/'
 CREATED_DATA_NAME = 'createdData'
 
@@ -15,8 +15,8 @@ def main(args):
                     description = 'This program classifies wether the bank should give or not loans',
                     epilog = 'For more help consult this link: https://github.com/frenato00/ML_2022')
 
-    parser.add_argument('-s', '--trainDataSize', type=float, default=0.25)
-    parser.add_argument('-m', '--modelType', type=str, default='rf')
+    parser.add_argument('-s', '--trainDataSize', type=float, default=0.75)
+    parser.add_argument('-m', '--modelType', type=str, default='rf', choices=MODEL_TYPES)
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-f', '--dataFromFile', action='store_true')
     parser.add_argument('-c', '--saveCleanData', action='store_true')

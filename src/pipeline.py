@@ -10,10 +10,14 @@ from progress.bar import Bar
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn import svm
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.feature_selection import RFE
+from sklearn.linear_model import Perceptron
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 import csv
@@ -95,11 +99,12 @@ def featureSelectionRank(model, labels, features, verbose):
     return selector.ranking_
 
 
-def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbose, balance, testFeatures, selectNFeatures):
+def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbose, balance, testFeatures, selectNFeatures, modelType):
     # Data balancing
     if balance:
         smote = SMOTE(random_state = 14)
         train_features, train_labels = smote.fit_resample(train_features_imbalanced, train_labels_imbalanced)
+        log('%sFinish balancing data... %s', verbose, True)
         log('Balanced dataset shape: {count}\n'.format(count=Counter(train_labels)), verbose)
     else:
         train_features = train_features_imbalanced
@@ -129,7 +134,10 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
 
             # Train the model on training data
             model.fit(features, train_labels)
-            predictions = model.predict_proba(features)
+            if modelType == 'pr':
+                predictions = model._predict_proba_lr(features)
+            else:
+                predictions = model.predict_proba(features)
             aucScore = roc_auc_score(train_labels, predictions[:, 1]) * 100
             intermediaryAUCs.append(aucScore)
 
@@ -145,7 +153,8 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
         bestMask = selector.support_
 
     if intermediaryAUCs != []:
-        print("Intermediary AUC's: ", intermediaryAUCs)
+        interAUCsString = ' | '.join([str(elem) for elem in intermediaryAUCs])
+        log("\n\nIntermediary AUC's: \n" + interAUCsString + "\n", verbose)
 
     # Train with the selected features
     features = []
@@ -176,7 +185,7 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
     return (model, trimmedTestFeatures)
 
 
-def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFeatures, randomState, testMode):
+def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode):
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
 
@@ -197,7 +206,7 @@ def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFe
 
     # Split the data into training and testing sets
     if testMode == 'none':
-        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, train_size=testSize, random_state=randomState)
+        train_features, test_features, train_labels, test_labels = train_test_split(features, labels, train_size=trainSize, random_state=randomState)
     else:
         # train data
         # train_features, _, train_labels, _ = train_test_split(features, labels, train_size=1, random_state=randomState)
@@ -219,13 +228,20 @@ def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFe
         log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
     if modelType == 'rf':
-        # Instantiate model with 1000 decision trees
         model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
-    elif modelType == 'svm':
+    elif modelType == 'lr':
+        model = LogisticRegression(solver='lbfgs', max_iter=1000)
+    elif modelType == 'dt':
+        model = DecisionTreeClassifier()
+    elif modelType == 'gb':
+        model = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1, random_state=0)
+    elif modelType == 'pr':
+        model = Perceptron(tol=1e-3, random_state=0)
+    elif modelType == 'svm': # TODO: doens't work with RFE
         model = svm.SVC(probability=True, kernel='poly')
-    elif modelType == 'naive':
+    elif modelType == 'naive': # TODO: doens't work with RFE
         model = GaussianNB()
-    elif modelType == 'nn':
+    elif modelType == 'nn': # TODO: giving other error
         model = MLPClassifier(solver='lbfgs', max_iter=-1, alpha=1e-5, random_state=1)
     else:
          print("\nModel Not Detected! Possible Models:\n rf\n svm\n naive\n nn\n")
@@ -235,15 +251,27 @@ def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFe
     featureSelectionRank(model, labels, features, verbose)
 
     # Feature selection and training model
-    (model, trimmed_test_features) = trainModel(model, train_features, train_labels, verbose, balance, test_features, selectNFeatures)
+    (model, trimmed_test_features) = trainModel(model, train_features, train_labels, verbose, balance, test_features, selectNFeatures, modelType)
 
     log('%s \nFinish Creating and Training Model... %s', verbose, True)
     return (model, trimmed_test_features, test_labels)
 
 
-def testModel(model, test_features, test_labels, verbose):
+#TODO: crete this function, also check this RepeatedKFold
+# evaluate a give model using cross-validation
+""" def crossValidation(model, X, y):
+	cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+	scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
+	return scores
+ """
+
+def testModel(model, test_features, test_labels, verbose, modelType):
     # Use the model to predict status using the test data
-    predictions = model.predict_proba(test_features)
+    if modelType == 'pr':
+        predictions = model._predict_proba_lr(test_features)
+    else:
+        predictions = model.predict_proba(test_features)
+
 
     classesOrderString = ' '.join([str(elem) for elem in model.classes_])
 
@@ -262,7 +290,7 @@ def testModel(model, test_features, test_labels, verbose):
         log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
 
-def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode):
+def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode):
     createdDataFile = re.sub('\..*$', '', createdDataName)
 
     # =============== Creating Features ===============
@@ -282,8 +310,8 @@ def runPipeline(dataFromFile, saveCleanData, testSize, modelType, verbose, balan
 
     # ================ Creating Model =================
 
-    (model, test_features, test_labels) = createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFeatures, randomState, testMode)
+    (model, test_features, test_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode)
 
     # ================ Testing Model ==================
 
-    testModel(model, test_features, test_labels, verbose)
+    testModel(model, test_features, test_labels, verbose, modelType)
