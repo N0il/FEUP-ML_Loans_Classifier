@@ -37,11 +37,15 @@ def main(args):
     if len(ids) != len(predictions):
         print("Error! Loans and predictions lengths don't match\n")
 
+    header = ['Id', 'Predicted']
+
     # writing results to file
-    with open("predictions_kaggle.csv","w+") as my_csv:
-        for i in range(len(predictions)-1):
-            csvWriter = csv.writer(my_csv, delimiter=',')
-            csvWriter.writerows({'Id': ids[i], 'Predicted': predictions[i]})
+    with open("./../data/output/kagglePredictions.csv","w+", newline="") as my_csv:
+        csvWriter = csv.writer(my_csv, delimiter=',')
+        csvWriter.writerow(header)
+
+        for i in range(len(predictions)):
+            csvWriter.writerow([int(ids[i]), predictions[i]])
 
 
 if __name__ == "__main__":

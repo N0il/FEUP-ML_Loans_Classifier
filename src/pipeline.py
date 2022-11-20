@@ -170,7 +170,7 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
     # Trim the test features accordingly
     trimmedTestFeatures = []
 
-    for r in range(len(testFeatures[0])):
+    for r in range(len(testFeatures)):
         testRow = []
         for c in range(len(bestMask)):
             if bestMask[c]:
@@ -213,20 +213,19 @@ def createModel(loansDataFrame, testSize, modelType, verbose, balance, selectNFe
         # train_features, _, train_labels, _ = train_test_split(features, labels, train_size=1, random_state=randomState)
         train_features = features
         train_labels = labels
-        # TODO: missing do the TRANSPOSE on the 2 above
 
         # test data
         dataFrame = pd.read_csv(testMode, sep=",")
         processedDataFrame = processFeatures(dataFrame, False, False)
         t_labels = np.array(processedDataFrame['status'])
-        test_features = processedDataFrame.drop('status', axis = 1)  # TODO: missing do the TRANSPOSE
+        test_features = processedDataFrame.drop('status', axis = 1).to_numpy()
         #_, test_features, _, _ = train_test_split(t_features, t_labels, test_size=1, random_state=None)
-        test_labels = None
+        test_labels = []
 
     log('\nTraining Features Shape:' + str(train_features.shape), verbose)
     log('Training Labels Shape:' + str(train_labels.shape), verbose)
     log('Testing Features Shape:' + str(test_features.shape), verbose)
-    if test_labels != None:
+    if test_labels != []:
         log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
     if modelType == 'rf':
@@ -267,7 +266,7 @@ def testModel(model, test_features, test_labels, verbose):
     log('%sFinish Testing Model... %s', verbose, True)
 
     # roc curve for models
-    if test_labels !=  None:
+    if test_labels !=  []:
         aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
 
         log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
