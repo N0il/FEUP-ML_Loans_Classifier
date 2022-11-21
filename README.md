@@ -35,7 +35,7 @@ G_40:
 - (example for random forest model, balancing data)
 
 ### Don't Create data, train model with default data from file and test model with custom data (-t) (test mode):
-- `python.exe .\loanClassifier.py -m rf -v -b -n 7 -t ./../data/output/createdKaggleData.csv`
+- `python.exe .\loanClassifier.py -m rf -v -b -n 7 -t ./../data/output/createdKaggleData.csv -f`
 - (example for random forest model, balancing data, selecting 7 features)
 
 ## Kaggle results converter

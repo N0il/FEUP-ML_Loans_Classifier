@@ -111,73 +111,77 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
         train_labels = train_labels_imbalanced
         log('Imbalanced dataset shape: {count}\n'.format(count=Counter(train_labels)), verbose)
 
-    progressBar = Bar('Selecting Features', max=len(train_features[0]), suffix='%(percent)d%% - %(eta)ds               ')
+    if not (modelType== 'svm' or modelType=='nn' or modelType=='naive'): # TODO: change this, if this algorithms are later supported
+        progressBar = Bar('Selecting Features', max=len(train_features[0]), suffix='%(percent)d%% - %(eta)ds               ')
 
-    bestAuc = 0
-    bestMask = []
-    intermediaryAUCs = []
+        bestAuc = 0
+        bestMask = []
+        intermediaryAUCs = []
 
-    if selectNFeatures == 99: # never used value
-        # Test model against multiple features groups
-        for i in range(len(train_features[0])):
-            selector = RFE(model, n_features_to_select=(len(train_features[0])-i))
+        if selectNFeatures == 99: # never used value
+            # Test model against multiple features groups
+            for i in range(len(train_features[0])):
+                selector = RFE(model, n_features_to_select=(len(train_features[0])-i))
+                selector = selector.fit(train_features, train_labels)
+                mask = selector.support_
+
+                features = []
+                for r in range(len(train_features)):
+                    row = []
+                    for c in range(len(train_features[r])):
+                        if mask[c]:
+                            row.append(train_features[r][c])
+                    features.append(row)
+
+                # Train the model on training data
+                model.fit(features, train_labels)
+                if modelType == 'pr':
+                    predictions = model._predict_proba_lr(features)
+                else:
+                    predictions = model.predict_proba(features)
+                aucScore = roc_auc_score(train_labels, predictions[:, 1]) * 100
+                intermediaryAUCs.append(aucScore)
+
+                # update best score and mask
+                if aucScore > bestAuc:
+                    bestAuc = aucScore
+                    bestMask = mask
+
+                progressBar.next()
+        else:
+            selector = RFE(model, n_features_to_select=selectNFeatures)
             selector = selector.fit(train_features, train_labels)
-            mask = selector.support_
+            bestMask = selector.support_
 
-            features = []
-            for r in range(len(train_features)):
-                row = []
-                for c in range(len(train_features[r])):
-                    if mask[c]:
-                        row.append(train_features[r][c])
-                features.append(row)
+        if intermediaryAUCs != []:
+            interAUCsString = ' | '.join([str(elem) for elem in intermediaryAUCs])
+            log("\n\nIntermediary AUC's: \n" + interAUCsString + "\n", verbose)
 
-            # Train the model on training data
-            model.fit(features, train_labels)
-            if modelType == 'pr':
-                predictions = model._predict_proba_lr(features)
-            else:
-                predictions = model.predict_proba(features)
-            aucScore = roc_auc_score(train_labels, predictions[:, 1]) * 100
-            intermediaryAUCs.append(aucScore)
+        # Train with the selected features
+        features = []
 
-            # update best score and mask
-            if aucScore > bestAuc:
-                bestAuc = aucScore
-                bestMask = mask
+        for r in range(len(train_features)):
+            row = []
+            for c in range(len(bestMask)):
+                if bestMask[c]:
+                    row.append(train_features[r][c])
+            features.append(row)
 
-            progressBar.next()
+        # Trim the test features accordingly
+        trimmedTestFeatures = []
+
+        for r in range(len(testFeatures)):
+            testRow = []
+            for c in range(len(bestMask)):
+                if bestMask[c]:
+                    testRow.append(testFeatures[r][c])
+            trimmedTestFeatures.append(testRow)
+
+        # Train the model on training data
+        model.fit(features, train_labels)
     else:
-        selector = RFE(model, n_features_to_select=selectNFeatures)
-        selector = selector.fit(train_features, train_labels)
-        bestMask = selector.support_
-
-    if intermediaryAUCs != []:
-        interAUCsString = ' | '.join([str(elem) for elem in intermediaryAUCs])
-        log("\n\nIntermediary AUC's: \n" + interAUCsString + "\n", verbose)
-
-    # Train with the selected features
-    features = []
-
-    for r in range(len(train_features)):
-        row = []
-        for c in range(len(bestMask)):
-            if bestMask[c]:
-                row.append(train_features[r][c])
-        features.append(row)
-
-    # Trim the test features accordingly
-    trimmedTestFeatures = []
-
-    for r in range(len(testFeatures)):
-        testRow = []
-        for c in range(len(bestMask)):
-            if bestMask[c]:
-                testRow.append(testFeatures[r][c])
-        trimmedTestFeatures.append(testRow)
-
-    # Train the model on training data
-    model.fit(features, train_labels)
+        model.fit(train_features, train_labels)
+        return (model, testFeatures)
 
     featuresMaskString = ' | '.join([str(elem) for elem in bestMask])
     log('Features after selection:\n' + featuresMaskString, verbose)
@@ -248,7 +252,8 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
          exit()
 
     # Show features ranking
-    featureSelectionRank(model, labels, features, verbose)
+    if not (modelType== 'svm' or modelType=='nn' or modelType=='naive'):
+        featureSelectionRank(model, labels, features, verbose)
 
     # Feature selection and training model
     (model, trimmed_test_features) = trainModel(model, train_features, train_labels, verbose, balance, test_features, selectNFeatures, modelType)
