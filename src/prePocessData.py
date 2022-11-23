@@ -4,8 +4,39 @@ import sys
 from scipy import stats
 from progress.bar import Bar
 from sklearn.preprocessing import LabelEncoder
+from utils import log
 
 from utils import convertFullDate
+
+
+def checkForDuplicates(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
+    # Selecting duplicate rows based
+    # on 'account_id' column
+    accounts_duplicates = accounts[accounts.duplicated('account_id')].shape[0]
+    cards_duplicates = cards[cards.duplicated('card_id')].shape[0]
+    clients_duplicates = clients[clients.duplicated('client_id')].shape[0]
+    dispositions_duplicates = dispositions[dispositions.duplicated('disp_id')].shape[0]
+    districts_duplicates = districts[districts.duplicated('code ')].shape[0]
+    loans_duplicates = loans[loans.duplicated('loan_id')].shape[0]
+    transactions_duplicates = transactions[transactions.duplicated('trans_id')].shape[0]
+
+    logMessage = "Dataset Duplicates:\nAccounts: "+ str(accounts_duplicates) + "\nCards: " + str(cards_duplicates) + "\nClients: " + str(clients_duplicates) + "\nDispositions: " + str(dispositions_duplicates) + "\nDistricts: " + str(districts_duplicates) + "\nLoans: " + str(loans_duplicates) + "\nTransactions: " + str(transactions_duplicates) + "\n"
+    log(logMessage, verbose)
+    return
+
+
+def checkEmptyValues(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
+    accounts_empty = np.where(accounts.applymap(lambda x: x == ''))
+    cards_empty = np.where(cards.applymap(lambda x: x == ''))
+    clients_empty = np.where(clients.applymap(lambda x: x == ''))
+    dispositions_empty = np.where(dispositions.applymap(lambda x: x == ''))
+    districts_empty = np.where(districts.applymap(lambda x: x == ''))
+    loans_empty = np.where(loans.applymap(lambda x: x == ''))
+    transactions_empty = np.where(transactions.applymap(lambda x: x == ''))
+
+    logMessage = "Dataset Missing Data:\nAccounts: "+ str(accounts_empty) + "\nCards: " + str(cards_empty) + "\nClients: " + str(clients_empty) + "\nDispositions: " + str(dispositions_empty) + "\nDistricts: " + str(districts_empty) + "\nLoans: " + str(loans_empty) + "\nTransactions: " + str(transactions_empty) + "\n"
+    log(logMessage, verbose)
+    return
 
 
 # process all data to correspond to a loan row,

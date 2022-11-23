@@ -1,7 +1,7 @@
 from loadData import loadData
 from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
 from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, log
-from prePocessData import combineFeatures, cleanData, labelEncoding, processZeroSalaries, removeOutliers
+from prePocessData import checkEmptyValues, checkForDuplicates, combineFeatures, cleanData, labelEncoding, processZeroSalaries, removeOutliers
 
 import pandas as pd
 import numpy as np
@@ -32,6 +32,8 @@ def createFeatures(verbose, path):
     # ================= Loading Data =================
 
     (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData(path)
+    checkForDuplicates(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
+    checkEmptyValues(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
 
     # =============== Feature Creation ===============
 
@@ -232,7 +234,7 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
         log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
     if modelType == 'rf':
-        model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
+        model = RandomForestClassifier(n_estimators = 1000, random_state = 42) # criterion
     elif modelType == 'lr':
         model = LogisticRegression(solver='lbfgs', max_iter=1000)
     elif modelType == 'dt':

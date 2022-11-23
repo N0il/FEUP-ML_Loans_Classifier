@@ -65,10 +65,6 @@ Data analysis that consists on identifying relationships between pairs or small 
 
 - **Outliers in the data**: These are observations that have relatively large or small values compared to the majority of observations. In order to detect them Boxplot and Cleveland dot plots are two good tools.
 
-- **Homogeneity in variance**: **TODO**
-
-- **Collinearity in covariates**: **TODO**
-
 - **Normally distributed data**: Various statistical techniques assume normality, such as linear regressions and t-tests. Histograms can be used to show data distributions.
 
 - **Missing value in the data**: These type of values make the analysis more complicated. This analysis ca be checking if a particular observation as a zero value, in some cases (e.g. loan amount).
