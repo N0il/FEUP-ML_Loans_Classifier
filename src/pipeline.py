@@ -250,7 +250,7 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
     elif modelType == 'nn': # TODO: giving other error
         model = MLPClassifier(solver='lbfgs', max_iter=-1, alpha=1e-5, random_state=1)
     else:
-         print("\nModel Not Detected! Possible Models:\n rf\n svm\n naive\n nn\n")
+         print("\nModel Not Detected!\n")
          exit()
 
     # Show features ranking
