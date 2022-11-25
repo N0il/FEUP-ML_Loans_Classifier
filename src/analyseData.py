@@ -4,6 +4,7 @@ from utils import createAllExpenses, createLoanExpenses, createSalary
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
+import seaborn as sns
 
 
 from functools import partial
@@ -159,4 +160,26 @@ def checkBirthVSLoanPeriod(data):
 #print(loanRegions[0], " of the Czech regions are represented by the loans data (> 10 samples)\n")
 #print(loanRegions[1], " of the Czech regions are not represented by the loans data\n")
 
-checkBirthVSLoanPeriod(data)
+# checkBirthVSLoanPeriod(data)
+
+sns.set(rc={'figure.figsize':(12, 7.5)})
+sns.set_context('talk')
+
+sns.distplot(data['expenses'], color="maroon")
+plt.xlabel("koruna", labelpad=14)
+plt.ylabel("probability of occurence", labelpad=14)
+plt.title("Distribution of Clients' Expenses", y=1.015, fontsize=20)
+plt.show()
+
+sns.distplot(data['amount'], color="maroon")
+plt.xlabel("koruna", labelpad=14)
+plt.ylabel("probability of occurence", labelpad=14)
+plt.title("Distribution of Loans' amount", y=1.015, fontsize=20)
+plt.show()
+
+
+sns.distplot(data['savingsRate'], color="maroon")
+plt.xlabel("%", labelpad=14)
+plt.ylabel("probability of occurence", labelpad=14)
+plt.title("Distribution of Clients' savings rate", y=1.015, fontsize=20)
+plt.show()
