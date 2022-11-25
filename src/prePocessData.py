@@ -39,6 +39,20 @@ def checkEmptyValues(accounts, cards, clients, dispositions, districts, loans, t
     return
 
 
+def printDatasetSizes(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
+    accounts_size = accounts.shape[0]
+    cards_size = cards.shape[0]
+    clients_size = clients.shape[0]
+    dispositions_size = dispositions.shape[0]
+    districts_size = districts.shape[0]
+    loans_size = loans.shape[0]
+    transactions_size = transactions.shape[0]
+
+    logMessage = "Dataset Sizes:\nAccounts: "+ str(accounts_size) + "\nCards: " + str(cards_size) + "\nClients: " + str(clients_size) + "\nDispositions: " + str(dispositions_size) + "\nDistricts: " + str(districts_size) + "\nLoans: " + str(loans_size) + "\nTransactions: " + str(transactions_size) + "\n"
+    log(logMessage, verbose)
+    return
+
+
 # process all data to correspond to a loan row,
 # in order to combine all data with loans table
 def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates, expenses, ages):

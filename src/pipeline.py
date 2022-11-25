@@ -1,7 +1,7 @@
 from loadData import loadData
 from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
 from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, log
-from prePocessData import checkEmptyValues, checkForDuplicates, combineFeatures, cleanData, labelEncoding, processZeroSalaries, removeOutliers
+from prePocessData import checkEmptyValues, checkForDuplicates, combineFeatures, cleanData, labelEncoding, printDatasetSizes, processZeroSalaries, removeOutliers
 
 import pandas as pd
 import numpy as np
@@ -34,6 +34,7 @@ def createFeatures(verbose, path):
     (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData(path)
     checkForDuplicates(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
     checkEmptyValues(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
+    printDatasetSizes(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
 
     # =============== Feature Creation ===============
 

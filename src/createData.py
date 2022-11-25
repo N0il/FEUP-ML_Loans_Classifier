@@ -6,8 +6,13 @@ from utils import *
 # ?possible attribute creation (birthdates)
 def createClientBirthdate(clients):
     birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
-    birthdates = map(convertDate, birthdatesRaw)
+    birthdates = map(convertIntDate, birthdatesRaw)
     return birthdates
+
+def createClientBirthdateRaw(clients):
+    birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
+   # birthdates = map(convertIntDate, birthdatesRaw)
+    return birthdatesRaw
 
 
 def createClientGender(clients):
