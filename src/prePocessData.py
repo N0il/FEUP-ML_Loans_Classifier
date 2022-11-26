@@ -25,20 +25,6 @@ def checkForDuplicates(accounts, cards, clients, dispositions, districts, loans,
     return
 
 
-def checkEmptyValues(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
-    accounts_empty = np.where(accounts.applymap(lambda x: x == ''))
-    cards_empty = np.where(cards.applymap(lambda x: x == ''))
-    clients_empty = np.where(clients.applymap(lambda x: x == ''))
-    dispositions_empty = np.where(dispositions.applymap(lambda x: x == ''))
-    districts_empty = np.where(districts.applymap(lambda x: x == ''))
-    loans_empty = np.where(loans.applymap(lambda x: x == ''))
-    transactions_empty = np.where(transactions.applymap(lambda x: x == ''))
-
-    logMessage = "Dataset Missing Data:\nAccounts: "+ str(accounts_empty) + "\nCards: " + str(cards_empty) + "\nClients: " + str(clients_empty) + "\nDispositions: " + str(dispositions_empty) + "\nDistricts: " + str(districts_empty) + "\nLoans: " + str(loans_empty) + "\nTransactions: " + str(transactions_empty) + "\n"
-    log(logMessage, verbose)
-    return
-
-
 def printDatasetSizes(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
     accounts_size = accounts.shape[0]
     cards_size = cards.shape[0]
@@ -167,14 +153,19 @@ def labelEncoding(loansDataFrame):
 
 def processZeroSalaries(salaries, districtAvgSalary, substituteWithAvg):
     processedSalaries = {}
+    nSalaries = len(salaries)
+    nZeroSalaries = 0
 
     for accountId in salaries:
         if salaries[accountId] == 0:
+            nZeroSalaries+=1
             if substituteWithAvg:
                 processedSalaries[accountId] = districtAvgSalary[accountId]
             else:
                 processedSalaries[accountId] = 1
         else:
             processedSalaries[accountId] = salaries[accountId]
+
+    print("\nNumber of zero salaries: ", nZeroSalaries, " of a total of ", nSalaries)
 
     return processedSalaries

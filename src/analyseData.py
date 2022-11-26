@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
 import seaborn as sns
+import numpy as np
 
 
 from functools import partial
@@ -84,6 +85,8 @@ print("% OF ZERO SALARIES: ", (zeros / total) * 100) """
 #
 
 (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData('./../data/input/')
+inputData = [accounts, cards, clients, dispositions, districts, loans, transactions]
+inputDataNames = ['accounts', 'cards', 'clients', 'dispositions', 'districts', 'loans', 'transactions']
 
 
 def checkRegionsRepresentedAccounts(accounts, districts):
@@ -162,7 +165,7 @@ def checkBirthVSLoanPeriod(data):
 
 # checkBirthVSLoanPeriod(data)
 
-sns.set(rc={'figure.figsize':(12, 7.5)})
+""" sns.set(rc={'figure.figsize':(12, 7.5)})
 sns.set_context('talk')
 
 sns.distplot(data['expenses'], color="maroon")
@@ -182,4 +185,11 @@ sns.distplot(data['savingsRate'], color="maroon")
 plt.xlabel("%", labelpad=14)
 plt.ylabel("probability of occurence", labelpad=14)
 plt.title("Distribution of Clients' savings rate", y=1.015, fontsize=20)
-plt.show()
+plt.show() """
+
+for i in range(len(inputData)):
+    print("\n",inputDataNames[i] , ":")
+    print("Empty values: ", np.where(inputData[i].applymap(lambda x: x == '?')))
+    print("Null values: ", np.where(pd.isnull(inputData[i])))
+    print("Number of Null values: ", len(np.where(pd.isnull(inputData[i]))[0]))
+    print("Total values: ", len(np.where(inputData[i].applymap(lambda x: x))[0]))
