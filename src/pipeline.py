@@ -241,7 +241,7 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
     return (model, trimmedTestFeatures)
 
 
-def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode):
+def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters):
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
 
@@ -283,12 +283,37 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
     if test_labels != []:
         log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
+    # Handle inputted parameters
+    if parameters ==  None or len(parameters) < 3:
+        log('\nUsing default parameters', verbose)
+        nEstimators = 100
+        randomState = None
+        maxDepth = None
+        Solver = 'lbfgs'
+        c = 1.0
+        Penalty = 'l2'
+    else:
+        if modelType == 'rf' or modelType == 'gb':
+            nEstimators = int(parameters[0])
+            if parameters[1] == 'None':
+                randomState = None
+            else:
+                randomState = int(parameters[1])
+            if parameters[2] == 'None':
+                maxDepth = None
+            else:
+                maxDepth = int(parameters[2])
+        elif modelType == 'lr':
+            Solver = parameters[0]
+            c = float(parameters[0])
+            Penalty = parameters[0]
+
     if modelType == 'rf':
-        model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
+        model = RandomForestClassifier(n_estimators=nEstimators, random_state=randomState, max_depth=maxDepth)
     elif modelType == 'lr':
-        model = LogisticRegression(solver='lbfgs', max_iter=1000)
+        model = LogisticRegression(solver=Solver, C=c, penalty=Penalty, max_iter=1000)
     elif modelType == 'gb':
-        model = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1, random_state=0)
+        model = GradientBoostingClassifier(n_estimators=nEstimators, learning_rate=1.0, max_depth=maxDepth, random_state=randomState)
     elif modelType == 'dt':
         model = DecisionTreeClassifier()
     elif modelType == 'pr':
@@ -346,8 +371,8 @@ def testModel(model, test_features, test_labels, verbose, modelType):
         log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
 
-def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode, sampleByAge, sampleByYear):
-    createdDataFile = re.sub('\..*$', '', createdDataName)
+def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode, sampleByAge, sampleByYear, parameters):
+    createdDataFile = re.sub('\..*$', '', createdDataName) # used to remove file name extensions
 
     # =============== Creating Features ===============
 
@@ -366,7 +391,7 @@ def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, bala
 
     # ================ Creating Model =================
 
-    (model, test_features, test_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode)
+    (model, test_features, test_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters)
 
     # ================ Testing Model ==================
 
