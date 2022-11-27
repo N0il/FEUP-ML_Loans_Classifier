@@ -10,8 +10,18 @@ from utils import convertFullDate
 
 
 def checkForDuplicates(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
-    # Selecting duplicate rows based
-    # on 'account_id' column
+    """Checks for duplicates in all the tables
+
+    Args:
+        accounts (DataFrame): accounts table
+        cards (DataFrame): cards table
+        clients (DataFrame): clients table
+        dispositions (DataFrame): dispositions table
+        districts (DataFrame): districts table
+        loans (DataFrame): loans table
+        transactions (DataFrame): transactions table
+        verbose (bool): controls console logs
+    """
     accounts_duplicates = accounts[accounts.duplicated('account_id')].shape[0]
     cards_duplicates = cards[cards.duplicated('card_id')].shape[0]
     clients_duplicates = clients[clients.duplicated('client_id')].shape[0]
@@ -26,6 +36,18 @@ def checkForDuplicates(accounts, cards, clients, dispositions, districts, loans,
 
 
 def printDatasetSizes(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
+    """Prints the tables' sizes
+
+    Args:
+        accounts (DataFrame): accounts table
+        cards (DataFrame): cards table
+        clients (DataFrame): clients table
+        dispositions (DataFrame): dispositions table
+        districts (DataFrame): districts table
+        loans (DataFrame): loans table
+        transactions (DataFrame): transactions table
+        verbose (bool): controls console logs
+    """
     accounts_size = accounts.shape[0]
     cards_size = cards.shape[0]
     clients_size = clients.shape[0]
@@ -39,9 +61,24 @@ def printDatasetSizes(accounts, cards, clients, dispositions, districts, loans, 
     return
 
 
-# process all data to correspond to a loan row,
-# in order to combine all data with loans table
 def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRates, savingsRates, districtCrimeRates, expenses, ages):
+    """Process all data to correspond to a loan row, in order to combine all data with loans table
+
+    Args:
+        loans (DataFrame): loans table
+        clients (DataFrame): clients table
+        dispositions (DataFrame): dispositions table
+        genders (array): sorted genders array
+        ageGroups (array): sorted age groups array
+        effortRates (dict): accounts' effort rates
+        savingsRates (dict): accounts' savings rates
+        districtCrimeRates (dict): crime rate per district
+        expenses (dict): expenses per account
+        ages (array): sorted ages
+
+    Returns:
+        DataFrame: processed data with all the created features
+    """
     progressBar = Bar('Features Processing', max=loans.shape[0], suffix='%(percent)d%% - %(eta)ds               ')
     gendersByLoan = []
     ageGroupByLoan = []
@@ -81,28 +118,39 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
         except KeyError:
             expensesByLoan.append(0)
         progressBar.next()
-
     return (gendersByLoan, ageGroupByLoan, effortRateByLoan, savingsRateByLoan, distCrimeByLoan, expensesByLoan, agesByLoan)
 
 
 def cleanData(loansDataFrame):
+    """_summary_
+
+    Args:
+        loansDataFrame (DataFrame): _description_
+
+    Returns:
+        DataFrame: _description_
+    """
     print('\nRemoving Redundant Information...')
     columnsToRemove =  ['loan_id', 'account_id']
-
     noRedundantData = loansDataFrame
 
     for col in columnsToRemove:
         noRedundantData = noRedundantData.drop(col, axis=1)
-
     return noRedundantData
 
 
-# TODO: do the same thing to the categorical data
 def removeOutliers(loansDataFrame):
+    """_summary_
+
+    Args:
+        loansDataFrame (DataFrame): _description_
+
+    Returns:
+        DataFrame: _description_
+    """
     print('Removing Outliers...\n')
     nonCategoricalColumns = ['savingsRate', 'distCrime', 'amount', 'duration', 'payments', 'expenses']
     totalOutliers = 0
-
     result = loansDataFrame
 
     for col in nonCategoricalColumns:
@@ -117,6 +165,14 @@ def removeOutliers(loansDataFrame):
 
 
 def labelEncoding(loansDataFrame):
+    """_summary_
+
+    Args:
+        loansDataFrame (DataFrame): _description_
+
+    Returns:
+        DataFrame: _description_
+    """
     print('Encoding data...')
     # gender and ageGroup encoding
     le = LabelEncoder()
@@ -147,11 +203,20 @@ def labelEncoding(loansDataFrame):
     # encodedDataFrame['year'] = years # Year doesn't make sense, because the model is going to be used in future years
     encodedDataFrame['month'] = months
     encodedDataFrame['day'] = days
-
     return encodedDataFrame
 
 
 def processZeroSalaries(salaries, districtAvgSalary, substituteWithAvg):
+    """_summary_
+
+    Args:
+        salaries (_type_): _description_
+        districtAvgSalary (_type_): _description_
+        substituteWithAvg (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     processedSalaries = {}
     nSalaries = len(salaries)
     nZeroSalaries = 0
@@ -167,5 +232,4 @@ def processZeroSalaries(salaries, districtAvgSalary, substituteWithAvg):
             processedSalaries[accountId] = salaries[accountId]
 
     print("\nNumber of zero salaries: ", nZeroSalaries, " of a total of ", nSalaries)
-
     return processedSalaries

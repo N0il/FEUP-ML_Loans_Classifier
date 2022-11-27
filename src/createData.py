@@ -5,28 +5,71 @@ from utils import *
 
 # ?possible attribute creation (birthdates)
 def createClientBirthdate(clients):
+    """_summary_
+
+    Args:
+        clients (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
     birthdates = map(convertIntDate, birthdatesRaw)
     return birthdates
 
+
 def createClientBirthdateRaw(clients):
+    """_summary_
+
+    Args:
+        clients (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
-   # birthdates = map(convertIntDate, birthdatesRaw)
     return birthdatesRaw
 
 
 def createClientGender(clients):
+    """_summary_
+
+    Args:
+        clients (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     gender = np.where(clients['birth_number'] % 10000>5000, 'female', 'male')
     return gender
 
 
 def createAgeGroup(ages):
+    """_summary_
+
+    Args:
+        ages (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     ageGroups = list(map(lambda age: 'kid' if age < 18 else ('adult' if age < 60 else 'elderly'), ages))
     return ageGroups
 
 
 # attribute creation (effort rate)
 def createEffortRate(loans, salaries, loanExpenses, districtAvgSalary):
+    """_summary_
+
+    Args:
+        loans (_type_): _description_
+        salaries (_type_): _description_
+        loanExpenses (_type_): _description_
+        districtAvgSalary (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     effortRates = {}
 
     for loanId in loanExpenses:
@@ -41,14 +84,23 @@ def createEffortRate(loans, salaries, loanExpenses, districtAvgSalary):
                 effortRates[loanId] = (loanExpenses[loanId][0] / salaries[accountId]) * 100
         else:
             effortRates[loanId] = (loanExpenses[loanId][0] / districtAvgSalary[accountId]) * 100
-        # effortRates[loanId] = 1 if effortRates[loanId] <= 40 else 0
         effortRates[loanId] = round(effortRates[loanId], 2)
-
     return effortRates
 
 
 # attribute creation (savings rate)
 def createSavingsRate(allExpenses, loanExpenses, loans, salaries):
+    """_summary_
+
+    Args:
+        allExpenses (_type_): _description_
+        loanExpenses (_type_): _description_
+        loans (_type_): _description_
+        salaries (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     savingsRates = {}
 
     for loanId in loanExpenses:
@@ -60,13 +112,21 @@ def createSavingsRate(allExpenses, loanExpenses, loans, salaries):
             savingsRates[loanId] = ((salaries[accountId]-(loanExpenses[loanId][0] + allExpenses[accountId])) / salaries[accountId]) * 100
         else:
             savingsRates[loanId] = ((salaries[accountId]-loanExpenses[loanId][0]) / salaries[accountId]) * 100
-
         savingsRates[loanId] = round(savingsRates[loanId], 2)
     return savingsRates
 
 
 # attribute creation (district average salary) -> or just used as an util
 def createDistrictAvgSalary(accounts, districts):
+    """_summary_
+
+    Args:
+        accounts (_type_): _description_
+        districts (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     avgSalaries = {}
 
     for _, row in accounts.iterrows():
@@ -78,6 +138,15 @@ def createDistrictAvgSalary(accounts, districts):
 
 # attribute creation (district criminality rate)
 def createDistrictCriminalityRate(accounts, districts):
+    """_summary_
+
+    Args:
+        accounts (_type_): _description_
+        districts (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     progressBar = Bar('Creating Crime Rate', max=accounts.shape[0], suffix='%(percent)d%% - %(eta)ds')
     districtCrimeRates = {}
 

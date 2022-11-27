@@ -160,10 +160,10 @@ def createLoanExpenses(loans):
     """Creates clients' monthly loan expenses
 
     Args:
-        loans (_type_): _description_
+        loans (DataFrame): loans table
 
     Returns:
-        _type_: _description_
+        dict: loan monthly expenses by account id
     """
     # 1 - calculate end date
     # 2 - for each loan calculate the total of loans being payed
