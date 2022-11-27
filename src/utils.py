@@ -8,11 +8,27 @@ CURRENT_EPOCH = 1997
 
 
 def createClientAge(clients):
+    """Creates client age
+
+    Args:
+        clients (DataFrame): clients table
+
+    Returns:
+        array: ages
+    """
     ages = (CURRENT_EPOCH % 100) - clients['birth_number'] // 10000
     return ages
 
 
 def convertDate(date):
+    """Converts partial string date to date object
+
+    Args:
+        date (str): date
+
+    Returns:
+        Date: date
+    """
     year = '19' + date[:2]
     month = date[2:4]
     day = date[4:]
@@ -22,6 +38,14 @@ def convertDate(date):
 
 
 def convertFullDate(date):
+    """Converts full date string to Date object
+
+    Args:
+        date (str): date
+
+    Returns:
+        Date: date
+    """
     splitted = date.split("-")
 
     day = splitted[2]
@@ -33,6 +57,14 @@ def convertFullDate(date):
 
 
 def convertIntDate(date):
+    """Converts partial date as an integer to Date object
+
+    Args:
+        date (int): date
+
+    Returns:
+        Date: date
+    """
     year = '19' + str(date // 10000)
     month = str((date % 10000) // 100)
     day = str(date % 100)
@@ -42,19 +74,36 @@ def convertIntDate(date):
 
 
 def calculateEndDate(startDate, duration):
+    """Calculates loan end date
+
+    Args:
+        startDate (Date): loan start date
+        duration (int): loan duration
+
+    Returns:
+        Date: loan end date
+    """
     return startDate + relativedelta(months=+duration)
 
 
-# (creating clients salary) -> maybe use samples (year by year instead of the whole table)
 def createSalary(transactions, occurrencesThreshold=0.8):
+    """Creates clients' salary
+
+    Args:
+        transactions (DataFrame): transactions table
+        occurrencesThreshold (float, optional): percentage of months on which the same value as to appear to be considered. Defaults to 0.8.
+
+    Returns:
+        dict: clients' salaries
+    """
     progressBar = Bar('Creating Salaries', max=transactions.shape[0], suffix='%(percent)d%%               ')
     # check only monthly recurrent income:
         # 1 - convert all transactions table dates
-        # 2 - create a map for each client with an entry for each month (starting in the smallest one found until the furthest one)
+        # 2 - create a map for each client with an entry for each month
+        # (starting in the smallest one found until the furthest one)
         # 3 - create an array of values for each map entry
         # 4 - check values that are recurrent in each array
         # 5 - the sum of the values of the previous step are the salary
-        # 6 - also record the period of months to match with the other periods
 
     # 1
     transactions['date'] = transactions['date'].apply(convertIntDate)
@@ -104,30 +153,33 @@ def createSalary(transactions, occurrencesThreshold=0.8):
                 salary += values[i]
 
         salaries[accountId] = salary
-
-    # 6 TODO: only need the end date (or maybe ignore) if not ignore -> check if loan start date is before the salary end date
-    #                                                                -> if it is not consider the district average salary
-
     return salaries
 
 
-# (creating clients total of monthly loans)
 def createLoanExpenses(loans):
-    # 1 - convert all
-    # 2 - calculate end date
-    # 3 - for each loan calculate the total of loans being payed (loans with concurrent periods -> main loan start is before loan being iterated)
+    """Creates clients' monthly loan expenses
+
+    Args:
+        loans (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    # 1 - calculate end date
+    # 2 - for each loan calculate the total of loans being payed
+    # (loans with concurrent periods -> main loan start is before loan being iterated)
 
     endDates = {}
-    # 2
+
+    # 1
     for index, row in loans.iterrows():
         endDate = calculateEndDate(row['date'], row['duration'])
         endDates[row['loan_id']] = endDate
 
     loansExpenses = {}
 
-    # 3
+    # 2
     for index, row in loans.iterrows():
-
         concurrentLoansAmount = row['payments']
 
         for insideIndex, insideRow in loans.iterrows():
@@ -136,32 +188,26 @@ def createLoanExpenses(loans):
                     if endDates[insideRow['loan_id']] < endDates[row['loan_id']]:
                         concurrentLoansAmount += insideRow['payments']
 
-
         loansExpenses[row['loan_id']] = (concurrentLoansAmount, row['account_id'])
-
-    # DEBUGGING
-    """ for index, row in loans.iterrows():
-        if loansExpenses[row['loan_id']][0] != row['payments']:
-            print("HERE: " + str(row['payments']))
- """
     return loansExpenses
 
 
-# (creating clients total of monthly expenses, excluding loans)
 def createAllExpenses(transactions):
-    progressBar = Bar('Creating Expenses', max=transactions.shape[0], suffix='%(percent)d%%               ')
-    # 1 - convert all dates
-    # 2 - sum all negative transactions (withdraws) per month
-    # 3 - sum all debits per month (table missing)
-    # 4 - make an average of the months
+    """Creates clients' monthly expenses, excluding loans
 
-    # 1 ALREADY DONE ABOVE
-    # transactions['date'] = transactions['date'].apply(convertIntDate)
-    # print(transactions['date'][0])
+    Args:
+        transactions (DataFrame): The transactions table
+
+    Returns:
+        dict: expenses by client id
+    """
+    progressBar = Bar('Creating Expenses', max=transactions.shape[0], suffix='%(percent)d%%               ')
+    # 1 - sum all negative transactions (withdraws) per month
+    # 2 - make an average of the months
 
     clientsExpenses = {}
 
-    # 2
+    # 1
     for _, row in transactions.iterrows():
         if row['type'] == 'withdrawal':
             monthYearId = str(row['date'].year) + str(row['date'].month)
@@ -177,8 +223,7 @@ def createAllExpenses(transactions):
                     clientsExpenses[row['account_id']][monthYearId] += row['amount']
         progressBar.next()
 
-
-    # 4
+    # 2
     for accountId in clientsExpenses:
         totalAmount = 0
         nMonths = len(clientsExpenses[accountId])
@@ -187,13 +232,18 @@ def createAllExpenses(transactions):
             totalAmount += clientsExpenses[accountId][monthId]
 
         averageAmount = totalAmount / nMonths
-
         clientsExpenses[accountId] = round(averageAmount)
-
     return clientsExpenses
 
 
 def log(text, verbose, colored=False):
+    """Logs a message to console
+
+    Args:
+        text (str): The text to print
+        verbose (bool): Controls wether the it should print or not
+        colored (bool, optional): Color of the text. Defaults to False.
+    """
     if not verbose:
         return
     if colored:
