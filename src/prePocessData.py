@@ -1,12 +1,10 @@
 import pandas as pd
 import numpy as np
-import sys
 from scipy import stats
 from progress.bar import Bar
 from sklearn.preprocessing import LabelEncoder
-from utils import log
 
-from utils import convertFullDate
+from utils import log, convertFullDate
 
 
 def checkForDuplicates(accounts, cards, clients, dispositions, districts, loans, transactions, verbose):
@@ -122,13 +120,13 @@ def combineFeatures(loans, clients, dispositions, genders, ageGroups, effortRate
 
 
 def cleanData(loansDataFrame):
-    """_summary_
+    """Removes redundant attributes
 
     Args:
-        loansDataFrame (DataFrame): _description_
+        loansDataFrame (DataFrame): loans data
 
     Returns:
-        DataFrame: _description_
+        DataFrame: clean data
     """
     print('\nRemoving Redundant Information...')
     columnsToRemove =  ['loan_id', 'account_id']
@@ -140,13 +138,13 @@ def cleanData(loansDataFrame):
 
 
 def removeOutliers(loansDataFrame):
-    """_summary_
+    """Removes the outliers based on the z-score
 
     Args:
-        loansDataFrame (DataFrame): _description_
+        loansDataFrame (DataFrame): loans data
 
     Returns:
-        DataFrame: _description_
+        DataFrame: data without outliers
     """
     print('Removing Outliers...\n')
     nonCategoricalColumns = ['savingsRate', 'distCrime', 'amount', 'duration', 'payments', 'expenses']
@@ -165,15 +163,16 @@ def removeOutliers(loansDataFrame):
 
 
 def labelEncoding(loansDataFrame):
-    """_summary_
+    """Encodes the features to maintain algorithms compatibility
 
     Args:
-        loansDataFrame (DataFrame): _description_
+        loansDataFrame (DataFrame): loans data
 
     Returns:
-        DataFrame: _description_
+        DataFrame: encoded data
     """
     print('Encoding data...')
+
     # gender and ageGroup encoding
     le = LabelEncoder()
 
@@ -207,15 +206,15 @@ def labelEncoding(loansDataFrame):
 
 
 def processZeroSalaries(salaries, districtAvgSalary, substituteWithAvg):
-    """_summary_
+    """Process zero salaries, replacing them with the district average
 
     Args:
-        salaries (_type_): _description_
-        districtAvgSalary (_type_): _description_
-        substituteWithAvg (_type_): _description_
+        salaries (dict): salaries by account id
+        districtAvgSalary (dict): average salary by account id
+        substituteWithAvg (bool): controls wether the replacement takes place
 
     Returns:
-        _type_: _description_
+        dict: salaries by account id
     """
     processedSalaries = {}
     nSalaries = len(salaries)
