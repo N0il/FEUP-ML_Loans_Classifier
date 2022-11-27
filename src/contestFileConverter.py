@@ -40,7 +40,7 @@ def main(args):
     header = ['Id', 'Predicted']
 
     # writing results to file
-    with open("./../data/output/kagglePredictions4.csv","w+", newline="") as my_csv:
+    with open("./../data/output/kagglePredictions5.csv","w+", newline="") as my_csv:
         csvWriter = csv.writer(my_csv, delimiter=',')
         csvWriter.writerow(header)
 

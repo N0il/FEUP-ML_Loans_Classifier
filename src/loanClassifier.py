@@ -26,10 +26,12 @@ def main(args):
     parser.add_argument('-i', '--inputPath', type=str, default=INPUT_DATA_PATH)
     parser.add_argument('-d', '--createdDataName', type=str, default=CREATED_DATA_NAME)
     parser.add_argument('-t', '--testMode', type=str, default='none') # the file from option <-f> is used as train data and this one as test data
+    parser.add_argument('-sa', '--sampleByAge', type=str, default='none') #20-60 between this values
+    parser.add_argument('-sy', '--sampleByYear', type=str, default='none') #1995 from this year on
 
     parsedArgs = parser.parse_args()
 
-    runPipeline(parsedArgs.dataFromFile, parsedArgs.saveCleanData, parsedArgs.trainDataSize, parsedArgs.modelType, parsedArgs.verbose, parsedArgs.balanceTestData, parsedArgs.selectNFeatures, parsedArgs.inputPath, parsedArgs.createdDataName, parsedArgs.randomState, parsedArgs.testMode)
+    runPipeline(parsedArgs.dataFromFile, parsedArgs.saveCleanData, parsedArgs.trainDataSize, parsedArgs.modelType, parsedArgs.verbose, parsedArgs.balanceTestData, parsedArgs.selectNFeatures, parsedArgs.inputPath, parsedArgs.createdDataName, parsedArgs.randomState, parsedArgs.testMode, parsedArgs.sampleByAge, parsedArgs.sampleByYear)
 
     print("\nExecution time: {elapsed:.2f} min".format(elapsed=((time.time() - start_time) / 60)))
 

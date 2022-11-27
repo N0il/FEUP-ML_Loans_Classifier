@@ -21,7 +21,7 @@ def createClientGender(clients):
 
 
 def createAgeGroup(ages):
-    ageGroups = list(map(lambda age: 'kid' if age < 18 else ('adult' if age < 65 else 'elderly'), ages))
+    ageGroups = list(map(lambda age: 'kid' if age < 18 else ('adult' if age < 60 else 'elderly'), ages))
     return ageGroups
 
 

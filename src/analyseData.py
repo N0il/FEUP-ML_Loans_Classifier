@@ -1,6 +1,7 @@
-from createData import createClientBirthdate, createClientBirthdateRaw
+from createData import createClientBirthdate, createClientBirthdateRaw, createDistrictAvgSalary
 from loadData import loadData
-from utils import createAllExpenses, createLoanExpenses, createSalary
+from prePocessData import processZeroSalaries
+from utils import convertIntDate, createAllExpenses, createLoanExpenses, createSalary
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
@@ -187,9 +188,45 @@ plt.ylabel("probability of occurence", labelpad=14)
 plt.title("Distribution of Clients' savings rate", y=1.015, fontsize=20)
 plt.show() """
 
-for i in range(len(inputData)):
+""" for i in range(len(inputData)):
     print("\n",inputDataNames[i] , ":")
     print("Empty values: ", np.where(inputData[i].applymap(lambda x: x == '?')))
     print("Null values: ", np.where(pd.isnull(inputData[i])))
     print("Number of Null values: ", len(np.where(pd.isnull(inputData[i]))[0]))
-    print("Total values: ", len(np.where(inputData[i].applymap(lambda x: x))[0]))
+    print("Total values: ", len(np.where(inputData[i].applymap(lambda x: x))[0])) """
+
+""" plt.hist(data['ageGroup'], bins=3)
+# adding labels
+plt.xlabel('age group')
+plt.ylabel('absolute frequency')
+plt.show() """
+
+""" plt.hist(data['effortRate'], bins=20, color='orange')
+# adding labels
+plt.xlabel('effort rate')
+plt.ylabel('absolute frequency')
+plt.show()
+
+plt.hist(data['status'], bins=2)
+# adding labels
+plt.xlabel('status')
+plt.ylabel('absolute frequency')
+plt.show() """
+
+""" loans['date'] = loans['date'].apply(convertIntDate)
+
+districtAvgSalary = createDistrictAvgSalary(accounts, districts)
+salaries = createSalary(transactions, 0.8)
+salaries = processZeroSalaries(salaries, districtAvgSalary, True)
+
+plt.hist(salaries, bins=10)
+# adding labels
+plt.xlabel('salaries')
+plt.ylabel('absolute frequency')
+plt.show() """
+
+plt.hist(data['expenses'], bins=10, color='orange')
+# adding labels
+plt.xlabel('expenses')
+plt.ylabel('absolute frequency')
+plt.show()
