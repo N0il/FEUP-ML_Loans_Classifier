@@ -152,6 +152,21 @@ def featureSelectionRank(model, labels, features, verbose):
 
 
 def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbose, balance, testFeatures, selectNFeatures, modelType):
+    """_summary_
+
+    Args:
+        model (model): the model object
+        train_features_imbalanced (array): train features
+        train_labels_imbalanced (array): train labels
+        verbose (bool): control console logs
+        balance (bool): control balancing
+        testFeatures (array): test features to trim
+        selectNFeatures (int): number of features to select
+        modelType (str): model to use
+
+    Returns:
+        tuple: model object and trimmed test features
+    """
     # Data balancing
     if balance:
         smote = SMOTE(random_state = 14)
@@ -237,11 +252,26 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
 
     featuresMaskString = ' | '.join([str(elem) for elem in bestMask])
     log('Features after selection:\n' + featuresMaskString, verbose)
-
     return (model, trimmedTestFeatures)
 
 
 def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters):
+    """_summary_
+
+    Args:
+        loansDataFrame (_type_): _description_
+        trainSize (_type_): _description_
+        modelType (_type_): _description_
+        verbose (_type_): _description_
+        balance (_type_): _description_
+        selectNFeatures (_type_): _description_
+        randomState (_type_): _description_
+        testMode (_type_): _description_
+        parameters (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
 
@@ -265,16 +295,13 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
         train_features, test_features, train_labels, test_labels = train_test_split(features, labels, train_size=trainSize, random_state=randomState)
     else:
         # train data
-        # train_features, _, train_labels, _ = train_test_split(features, labels, train_size=1, random_state=randomState)
         train_features = features
         train_labels = labels
 
         # test data
         dataFrame = pd.read_csv(testMode, sep=",")
         processedDataFrame = processFeatures(dataFrame, False, 'none', 'none', False)
-        t_labels = np.array(processedDataFrame['status'])
         test_features = processedDataFrame.drop('status', axis = 1).to_numpy()
-        #_, test_features, _, _ = train_test_split(t_features, t_labels, test_size=1, random_state=None)
         test_labels = []
 
     log('\nTraining Features Shape:' + str(train_features.shape), verbose)
@@ -347,6 +374,15 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
 
 
 def testModel(model, test_features, test_labels, verbose, modelType):
+    """_summary_
+
+    Args:
+        model (_type_): _description_
+        test_features (_type_): _description_
+        test_labels (_type_): _description_
+        verbose (_type_): _description_
+        modelType (_type_): _description_
+    """
     # Use the model to predict status using the test data
     if modelType == 'pr':
         predictions = model._predict_proba_lr(test_features)
@@ -372,6 +408,24 @@ def testModel(model, test_features, test_labels, verbose, modelType):
 
 
 def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode, sampleByAge, sampleByYear, parameters):
+    """Main module function, runs the entire ML pipeline according to the arguments given
+
+    Args:
+        dataFromFile (bool): to get data from file, instead having to create it
+        saveCleanData (bool): to save data after pre processing
+        trainSize (int): train data percentage
+        modelType (str): states the model to be used
+        verbose (bool): controls verbose mode
+        balance (bool): controls data balancing
+        selectNFeatures (int): number of features to select
+        path (str): path of the train data
+        createdDataName (str): name of the data file created
+        randomState (int): split test train random state
+        testMode (str): path to test data, or none
+        sampleByAge (str): age to sample data with, or none
+        sampleByYear (str): years to sample data with, or none
+        parameters (array): list of hyper-parameters
+    """
     createdDataFile = re.sub('\..*$', '', createdDataName) # used to remove file name extensions
 
     # =============== Creating Features ===============

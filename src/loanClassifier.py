@@ -26,8 +26,8 @@ def main(args):
     parser.add_argument('-i', '--inputPath', type=str, default=INPUT_DATA_PATH)
     parser.add_argument('-d', '--createdDataName', type=str, default=CREATED_DATA_NAME)
     parser.add_argument('-t', '--testMode', type=str, default='none') # the file from option <-f> is used as train data and this one as test data
-    parser.add_argument('-sa', '--sampleByAge', type=str, default='none') #20-60 between this values
-    parser.add_argument('-sy', '--sampleByYear', type=str, default='none') #1995 from this year on
+    parser.add_argument('-sa', '--sampleByAge', type=str, default='none') # e.g 20-60 between this values
+    parser.add_argument('-sy', '--sampleByYear', type=str, default='none') # e.g. 1995 from this year on
     parser.add_argument('-p','--parameters', action='append', help='Check the parameters order and enter all of them')
     # Parameters order:
     # rf: -p <estimators> -p <max_depth> -p <random_state>

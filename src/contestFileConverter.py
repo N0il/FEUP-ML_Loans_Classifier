@@ -1,3 +1,7 @@
+"""This module is an auxiliary tool to convert results
+   obtained in the loan classifier to valid kaggle input
+"""
+
 import argparse
 import sys
 import csv
