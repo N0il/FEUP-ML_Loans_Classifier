@@ -3,7 +3,7 @@ import sys
 import time
 from pipeline import runPipeline
 
-MODEL_TYPES = ['rf', 'lr', 'dt', 'gb', 'pr', 'svm', 'naive', 'nn']
+MODEL_TYPES = ['rf', 'lr', 'dt', 'gb', 'pr', 'svm', 'naive']
 INPUT_DATA_PATH = './../data/input/'
 CREATED_DATA_NAME = 'createdData'
 
