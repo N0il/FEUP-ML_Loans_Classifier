@@ -3,15 +3,14 @@ import numpy as np
 from utils import *
 
 
-# ?possible attribute creation (birthdates)
 def createClientBirthdate(clients):
-    """_summary_
+    """Creates clients' birthdates (date objects)
 
     Args:
-        clients (_type_): _description_
+        clients (DataFrame): clients data frame
 
     Returns:
-        _type_: _description_
+        array: clients' sorted birthdates
     """
     birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
     birthdates = map(convertIntDate, birthdatesRaw)
@@ -19,56 +18,55 @@ def createClientBirthdate(clients):
 
 
 def createClientBirthdateRaw(clients):
-    """_summary_
+    """Creates clients' birthdate (raw date numbers)
 
     Args:
-        clients (_type_): _description_
+        clients (DataFrame): clients data frame
 
     Returns:
-        _type_: _description_
+        array: clients' sorted birthdates
     """
     birthdatesRaw = np.where(clients['birth_number'] % 10000>5000, clients['birth_number']-5000, clients['birth_number'])
     return birthdatesRaw
 
 
 def createClientGender(clients):
-    """_summary_
+    """Creates clients' genders
 
     Args:
-        clients (_type_): _description_
+        clients (DataFrame): clients data frame
 
     Returns:
-        _type_: _description_
+        array: clients' sorted genders
     """
     gender = np.where(clients['birth_number'] % 10000>5000, 'female', 'male')
     return gender
 
 
 def createAgeGroup(ages):
-    """_summary_
+    """Creates clients' age groups
 
     Args:
-        ages (_type_): _description_
+        ages (array): sorted clients' ages
 
     Returns:
-        _type_: _description_
+        array: clients' sorted age groups
     """
     ageGroups = list(map(lambda age: 'kid' if age < 18 else ('adult' if age < 60 else 'elderly'), ages))
     return ageGroups
 
 
-# attribute creation (effort rate)
 def createEffortRate(loans, salaries, loanExpenses, districtAvgSalary):
-    """_summary_
+    """Creates effort rate (installments / income)
 
     Args:
-        loans (_type_): _description_
-        salaries (_type_): _description_
-        loanExpenses (_type_): _description_
-        districtAvgSalary (_type_): _description_
+        loans (DataFrame): loans data frame
+        salaries (dict): salaries by account id
+        loanExpenses (dict): loan expenses by account id
+        districtAvgSalary (dict): average district salaries by account id
 
     Returns:
-        _type_: _description_
+        dict: effort rate by account id
     """
     effortRates = {}
 
@@ -88,18 +86,17 @@ def createEffortRate(loans, salaries, loanExpenses, districtAvgSalary):
     return effortRates
 
 
-# attribute creation (savings rate)
 def createSavingsRate(allExpenses, loanExpenses, loans, salaries):
-    """_summary_
+    """Creates savings rates ((installments + expenses) / income)
 
     Args:
-        allExpenses (_type_): _description_
-        loanExpenses (_type_): _description_
-        loans (_type_): _description_
-        salaries (_type_): _description_
+        allExpenses (dict): expenses by account id
+        loanExpenses (dict): loan installments by account id
+        loans (DataFrame): loans data frame
+        salaries (dict): salaries by account id
 
     Returns:
-        _type_: _description_
+        dict: savings' rates by account id
     """
     savingsRates = {}
 
@@ -116,16 +113,15 @@ def createSavingsRate(allExpenses, loanExpenses, loans, salaries):
     return savingsRates
 
 
-# attribute creation (district average salary) -> or just used as an util
 def createDistrictAvgSalary(accounts, districts):
-    """_summary_
+    """Creates district average salary
 
     Args:
-        accounts (_type_): _description_
-        districts (_type_): _description_
+        accounts (DataFrame): accounts data frame
+        districts (DataFrame): districts data frame
 
     Returns:
-        _type_: _description_
+        dict: average salary by account id
     """
     avgSalaries = {}
 
@@ -136,16 +132,15 @@ def createDistrictAvgSalary(accounts, districts):
     return avgSalaries
 
 
-# attribute creation (district criminality rate)
 def createDistrictCriminalityRate(accounts, districts):
-    """_summary_
+    """Creates district criminality rate per person
 
     Args:
-        accounts (_type_): _description_
-        districts (_type_): _description_
+        accounts (DataFrame): accounts data frame
+        districts (DataFrame): districts data frame
 
     Returns:
-        _type_: _description_
+        dict: district crime rate per person, per account
     """
     progressBar = Bar('Creating Crime Rate', max=accounts.shape[0], suffix='%(percent)d%% - %(eta)ds')
     districtCrimeRates = {}

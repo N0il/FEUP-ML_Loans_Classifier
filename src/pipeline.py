@@ -256,21 +256,20 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
 
 
 def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters):
-    """_summary_
+    """Creates and trains a model with the given parameters
 
     Args:
-        loansDataFrame (_type_): _description_
-        trainSize (_type_): _description_
-        modelType (_type_): _description_
-        verbose (_type_): _description_
-        balance (_type_): _description_
-        selectNFeatures (_type_): _description_
-        randomState (_type_): _description_
-        testMode (_type_): _description_
-        parameters (_type_): _description_
-
+        loansDataFrame (DataFrame): pre processed loan anf created features data
+        trainSize (int): train data percentage
+        modelType (str): model to use
+        verbose (bool): control console logs
+        balance (bool): control balancing
+        selectNFeatures (int): number of features to select
+        randomState (int): train data split random state
+        testMode (str): path of test data, or none
+        parameters (array): list of parameters, or #
     Returns:
-        _type_: _description_
+        tuple: model, trimmed features and test labels
     """
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
@@ -364,24 +363,15 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
     return (model, trimmed_test_features, test_labels)
 
 
-#TODO: crete this function, also check this RepeatedKFold
-# evaluate a give model using cross-validation
-""" def crossValidation(model, X, y):
-	cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
-	scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
-	return scores
- """
-
-
 def testModel(model, test_features, test_labels, verbose, modelType):
-    """_summary_
+    """Outputs the model performance metrics
 
     Args:
-        model (_type_): _description_
-        test_features (_type_): _description_
-        test_labels (_type_): _description_
-        verbose (_type_): _description_
-        modelType (_type_): _description_
+        model (model): the model to test
+        test_features (DataFrame): the test features
+        test_labels (array): the test labels
+        verbose (bool): controls console logs
+        modelType (str): the model type
     """
     # Use the model to predict status using the test data
     if modelType == 'pr':
@@ -400,10 +390,9 @@ def testModel(model, test_features, test_labels, verbose, modelType):
 
     log('%sFinish Testing Model... %s', verbose, True)
 
-    # roc curve for models
-    if test_labels !=  []:
+    # roc auc score
+    if test_labels !=  []: # when it is not in test mode
         aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
-
         log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
 
