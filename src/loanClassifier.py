@@ -18,6 +18,7 @@ def main(args):
     parser.add_argument('-s', '--trainDataSize', type=float, default=0.75)
     parser.add_argument('-m', '--modelType', type=str, default='rf', choices=MODEL_TYPES)
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-g', '--gridSearch', action='store_true')
     parser.add_argument('-f', '--dataFromFile', action='store_true')
     parser.add_argument('-c', '--saveCleanData', action='store_true')
     parser.add_argument('-b', '--balanceTestData', action='store_true')
@@ -36,7 +37,7 @@ def main(args):
 
     parsedArgs = parser.parse_args()
 
-    runPipeline(parsedArgs.dataFromFile, parsedArgs.saveCleanData, parsedArgs.trainDataSize, parsedArgs.modelType, parsedArgs.verbose, parsedArgs.balanceTestData, parsedArgs.selectNFeatures, parsedArgs.inputPath, parsedArgs.createdDataName, parsedArgs.randomState, parsedArgs.testMode, parsedArgs.sampleByAge, parsedArgs.sampleByYear, parsedArgs.parameters)
+    runPipeline(parsedArgs.dataFromFile, parsedArgs.saveCleanData, parsedArgs.trainDataSize, parsedArgs.modelType, parsedArgs.verbose, parsedArgs.balanceTestData, parsedArgs.selectNFeatures, parsedArgs.inputPath, parsedArgs.createdDataName, parsedArgs.randomState, parsedArgs.testMode, parsedArgs.sampleByAge, parsedArgs.sampleByYear, parsedArgs.parameters, parsedArgs.gridSearch)
 
     print("\nExecution time: {elapsed:.2f} min".format(elapsed=((time.time() - start_time) / 60)))
 

@@ -21,6 +21,7 @@ from imblearn.over_sampling import SMOTE
 from collections import Counter
 import csv
 import re
+from sklearn.model_selection import GridSearchCV
 
 OUTPUT_DATA_PATH = './../data/output/'
 
@@ -360,10 +361,29 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
     (model, trimmed_test_features) = trainModel(model, train_features, train_labels, verbose, balance, test_features, selectNFeatures, modelType)
 
     log('%s \nFinish Creating and Training Model... %s', verbose, True)
-    return (model, trimmed_test_features, test_labels)
+    return (model, trimmed_test_features, test_labels, train_features, train_labels)
 
 
-def testModel(model, test_features, test_labels, verbose, modelType):
+def gridSearch(modelType, features, labels, verbose):
+    log('Executing Grid Search...\n', verbose)
+
+    if modelType == 'rf':
+        clf = GridSearchCV(RandomForestClassifier(), {'bootstrap': [True, False],
+                                                      'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
+                                                      'min_samples_leaf': [1, 2, 4],
+                                                      'min_samples_split': [2, 5, 10],
+                                                      'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]})
+    elif modelType == 'lr':
+        clf = GridSearchCV(LogisticRegression(), {'solver':('lbfgs', 'newton-cg', 'liblinear', 'saga'),
+        'penalty':( 'l2', 'l1', 'elasticnet'), 'max_iter':[100,1000, 2000, 3000, 4000, 5000], 'random_state':[1]})
+    elif modelType == 'gb':
+        clf = GridSearchCV(GradientBoostingClassifier(), {'max_depth':[1,1000], 'n_estimators':[1, 1000], 'random_state':[1,100]})
+
+    clf.fit(features, labels)
+    return clf
+
+
+def testModel(model, test_features, test_labels, verbose, modelType, doGridSearch):
     """Outputs the model performance metrics
 
     Args:
@@ -395,8 +415,12 @@ def testModel(model, test_features, test_labels, verbose, modelType):
         aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
         log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
+    if doGridSearch:
+        log("Best parameters found: \n", verbose)
+        log(model.best_params_, verbose)
 
-def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode, sampleByAge, sampleByYear, parameters):
+
+def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode, sampleByAge, sampleByYear, parameters, doGridSearch):
     """Main module function, runs the entire ML pipeline according to the arguments given
 
     Args:
@@ -434,8 +458,11 @@ def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, bala
 
     # ================ Creating Model =================
 
-    (model, test_features, test_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters)
+    (model, test_features, test_labels, train_features, train_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters)
 
     # ================ Testing Model ==================
 
-    testModel(model, test_features, test_labels, verbose, modelType)
+    if doGridSearch:
+        testModel(gridSearch(modelType, train_features, train_labels, verbose), test_features, test_labels, verbose, modelType, doGridSearch)
+    else:
+        testModel(model, test_features, test_labels, verbose, modelType, False)
