@@ -1,7 +1,7 @@
 from loadData import loadData
 from createData import createAgeGroup, createClientGender, createDistrictAvgSalary, createDistrictCriminalityRate, createEffortRate, createSavingsRate
 from utils import convertIntDate, createAllExpenses, createClientAge, createLoanExpenses, createSalary, log
-from prePocessData import combineFeatures, cleanData, labelEncoding, processZeroSalaries, removeOutliers
+from prePocessData import checkForDuplicates, combineFeatures, cleanData, labelEncoding, printDatasetSizes, processZeroSalaries, removeOutliers
 
 import pandas as pd
 import numpy as np
@@ -15,23 +15,34 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn import svm
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import Perceptron
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 import csv
 import re
+from sklearn.model_selection import GridSearchCV
 
 OUTPUT_DATA_PATH = './../data/output/'
 
 
 def createFeatures(verbose, path):
+    """Wrapper function for all the feature engineering
+
+    Args:
+        verbose (bool): control console logs
+        path (str): path of the original input data
+
+    Returns:
+        DataFrame: features created merged with the loans table
+    """
     progressBar = IncrementalBar('Creating data...', max=6, suffix='[%(index)d / %(max)d]               ') #, suffix='%(percent)d%%')
 
     # ================= Loading Data =================
 
     (accounts, cards, clients, dispositions, districts, loans, transactions) = loadData(path)
+    checkForDuplicates(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
+    printDatasetSizes(accounts, cards, clients, dispositions, districts, loans, transactions, verbose)
 
     # =============== Feature Creation ===============
 
@@ -75,14 +86,45 @@ def createFeatures(verbose, path):
     return loansDataFrame
 
 
-def processFeatures(loansDataFrame, verbose, removeOutliersOn=True):
+def processFeatures(loansDataFrame, verbose, sampleByAge, sampleByYear, removeOutliersOn=True):
+    """Wrapper function for all the data pre processing
+
+    Args:
+        loansDataFrame (DatFrame): the DataFrame created in createFeatures function
+        verbose (bool): control console logs
+        sampleByAge (str): controls sampling by age
+        sampleByYear (str): controls sampling by year
+        removeOutliersOn (bool, optional): controls outliers removal. Defaults to True.
+
+    Returns:
+        DataFrame: clean data frame
+    """
     log("Input Data BEFORE Cleaning:\n", verbose)
     log(loansDataFrame.head(), verbose)
 
     newLoansDataFrame = cleanData(loansDataFrame)
+
+    if sampleByYear != 'none':
+        year = sampleByYear + '01-01'
+        log("Sampling over year: " + sampleByYear, verbose)
+        indexYear1 = newLoansDataFrame[(newLoansDataFrame['date'] > year)].index
+        newLoansDataFrame = newLoansDataFrame.drop(indexYear1)
+
     newLoansDataFrame = labelEncoding(newLoansDataFrame)
     if removeOutliersOn:
         newLoansDataFrame = removeOutliers(newLoansDataFrame)
+
+    if sampleByAge != 'none':
+        ages = sampleByAge.split("-")
+        lowAge = int(ages[0])
+        highAge = int(ages[1])
+
+        log("\nSampling over age: " + sampleByAge, verbose)
+
+        indexAge1 = newLoansDataFrame[(newLoansDataFrame['age'] > highAge) ].index
+        indexAge2 = newLoansDataFrame[(newLoansDataFrame['age'] < lowAge) ].index
+        newLoansDataFrame = newLoansDataFrame.drop(indexAge1)
+        newLoansDataFrame = newLoansDataFrame.drop(indexAge2)
 
     log("\nInput Data AFTER Cleaning:\n", verbose)
     log(newLoansDataFrame.head(), verbose)
@@ -92,6 +134,17 @@ def processFeatures(loansDataFrame, verbose, removeOutliersOn=True):
 
 
 def featureSelectionRank(model, labels, features, verbose):
+    """Outputs the features ranking
+
+    Args:
+        model (model): model to be used with RFE
+        labels (array): labels
+        features (array): features
+        verbose (bool): control console logs
+
+    Returns:
+        array: features ranking
+    """
     selector = RFE(model, n_features_to_select=1)
     selector = selector.fit(features, labels)
     log('\nFeature Ranking: {rank}\n'.format(rank=selector.ranking_), verbose)
@@ -100,6 +153,21 @@ def featureSelectionRank(model, labels, features, verbose):
 
 
 def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbose, balance, testFeatures, selectNFeatures, modelType):
+    """_summary_
+
+    Args:
+        model (model): the model object
+        train_features_imbalanced (array): train features
+        train_labels_imbalanced (array): train labels
+        verbose (bool): control console logs
+        balance (bool): control balancing
+        testFeatures (array): test features to trim
+        selectNFeatures (int): number of features to select
+        modelType (str): model to use
+
+    Returns:
+        tuple: model object and trimmed test features
+    """
     # Data balancing
     if balance:
         smote = SMOTE(random_state = 14)
@@ -111,7 +179,7 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
         train_labels = train_labels_imbalanced
         log('Imbalanced dataset shape: {count}\n'.format(count=Counter(train_labels)), verbose)
 
-    if not (modelType== 'svm' or modelType=='nn' or modelType=='naive'): # TODO: change this, if this algorithms are later supported
+    if not (modelType== 'svm' or modelType=='naive'):
         progressBar = Bar('Selecting Features', max=len(train_features[0]), suffix='%(percent)d%% - %(eta)ds               ')
 
         bestAuc = 0
@@ -185,11 +253,25 @@ def trainModel(model, train_features_imbalanced, train_labels_imbalanced, verbos
 
     featuresMaskString = ' | '.join([str(elem) for elem in bestMask])
     log('Features after selection:\n' + featuresMaskString, verbose)
-
     return (model, trimmedTestFeatures)
 
 
-def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode):
+def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters):
+    """Creates and trains a model with the given parameters
+
+    Args:
+        loansDataFrame (DataFrame): pre processed loan anf created features data
+        trainSize (int): train data percentage
+        modelType (str): model to use
+        verbose (bool): control console logs
+        balance (bool): control balancing
+        selectNFeatures (int): number of features to select
+        randomState (int): train data split random state
+        testMode (str): path of test data, or none
+        parameters (array): list of parameters, or #
+    Returns:
+        tuple: model, trimmed features and test labels
+    """
     # Labels are the values to predict
     labels = np.array(loansDataFrame['status'])
 
@@ -213,16 +295,13 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
         train_features, test_features, train_labels, test_labels = train_test_split(features, labels, train_size=trainSize, random_state=randomState)
     else:
         # train data
-        # train_features, _, train_labels, _ = train_test_split(features, labels, train_size=1, random_state=randomState)
         train_features = features
         train_labels = labels
 
         # test data
         dataFrame = pd.read_csv(testMode, sep=",")
-        processedDataFrame = processFeatures(dataFrame, False, False)
-        t_labels = np.array(processedDataFrame['status'])
+        processedDataFrame = processFeatures(dataFrame, False, 'none', 'none', False)
         test_features = processedDataFrame.drop('status', axis = 1).to_numpy()
-        #_, test_features, _, _ = train_test_split(t_features, t_labels, test_size=1, random_state=None)
         test_labels = []
 
     log('\nTraining Features Shape:' + str(train_features.shape), verbose)
@@ -231,24 +310,47 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
     if test_labels != []:
         log('Testing Labels Shape:' + str(test_labels.shape), verbose)
 
+    # Handle inputted parameters
+    if parameters ==  None or len(parameters) < 3:
+        log('\nUsing default parameters', verbose)
+        nEstimators = 100
+        randomState = None
+        maxDepth = None
+        Solver = 'lbfgs'
+        c = 1.0
+        Penalty = 'l2'
+    else:
+        if modelType == 'rf' or modelType == 'gb':
+            nEstimators = int(parameters[0])
+            if parameters[1] == 'None':
+                randomState = None
+            else:
+                randomState = int(parameters[1])
+            if parameters[2] == 'None':
+                maxDepth = None
+            else:
+                maxDepth = int(parameters[2])
+        elif modelType == 'lr':
+            Solver = parameters[0]
+            c = float(parameters[0])
+            Penalty = parameters[0]
+
     if modelType == 'rf':
-        model = RandomForestClassifier(n_estimators = 1000, random_state = 42)
+        model = RandomForestClassifier(n_estimators=nEstimators, random_state=randomState, max_depth=maxDepth)
     elif modelType == 'lr':
-        model = LogisticRegression(solver='lbfgs', max_iter=1000)
+        model = LogisticRegression(solver=Solver, C=c, penalty=Penalty, max_iter=1000)
+    elif modelType == 'gb':
+        model = GradientBoostingClassifier(n_estimators=nEstimators, learning_rate=1.0, max_depth=maxDepth, random_state=randomState)
     elif modelType == 'dt':
         model = DecisionTreeClassifier()
-    elif modelType == 'gb':
-        model = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1, random_state=0)
     elif modelType == 'pr':
         model = Perceptron(tol=1e-3, random_state=0)
-    elif modelType == 'svm': # TODO: doens't work with RFE
+    elif modelType == 'svm': # doesn't support RFE
         model = svm.SVC(probability=True, kernel='poly')
-    elif modelType == 'naive': # TODO: doens't work with RFE
+    elif modelType == 'naive': # doesn't support RFE
         model = GaussianNB()
-    elif modelType == 'nn': # TODO: giving other error
-        model = MLPClassifier(solver='lbfgs', max_iter=-1, alpha=1e-5, random_state=1)
     else:
-         print("\nModel Not Detected! Possible Models:\n rf\n svm\n naive\n nn\n")
+         print("\nModel Not Detected!\n")
          exit()
 
     # Show features ranking
@@ -259,18 +361,38 @@ def createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNF
     (model, trimmed_test_features) = trainModel(model, train_features, train_labels, verbose, balance, test_features, selectNFeatures, modelType)
 
     log('%s \nFinish Creating and Training Model... %s', verbose, True)
-    return (model, trimmed_test_features, test_labels)
+    return (model, trimmed_test_features, test_labels, train_features, train_labels)
 
 
-#TODO: crete this function, also check this RepeatedKFold
-# evaluate a give model using cross-validation
-""" def crossValidation(model, X, y):
-	cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
-	scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
-	return scores
- """
+def gridSearch(modelType, features, labels, verbose):
+    log('Executing Grid Search...\n', verbose)
 
-def testModel(model, test_features, test_labels, verbose, modelType):
+    if modelType == 'rf':
+        clf = GridSearchCV(RandomForestClassifier(), {'bootstrap': [True, False],
+                                                      'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
+                                                      'min_samples_leaf': [1, 2, 4],
+                                                      'min_samples_split': [2, 5, 10],
+                                                      'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]})
+    elif modelType == 'lr':
+        clf = GridSearchCV(LogisticRegression(), {'solver':('lbfgs', 'newton-cg', 'liblinear', 'saga'),
+        'penalty':( 'l2', 'l1', 'elasticnet'), 'max_iter':[100,1000, 2000, 3000, 4000, 5000], 'random_state':[1]})
+    elif modelType == 'gb':
+        clf = GridSearchCV(GradientBoostingClassifier(), {'max_depth':[1,1000], 'n_estimators':[1, 1000], 'random_state':[1,100]})
+
+    clf.fit(features, labels)
+    return clf
+
+
+def testModel(model, test_features, test_labels, verbose, modelType, doGridSearch):
+    """Outputs the model performance metrics
+
+    Args:
+        model (model): the model to test
+        test_features (DataFrame): the test features
+        test_labels (array): the test labels
+        verbose (bool): controls console logs
+        modelType (str): the model type
+    """
     # Use the model to predict status using the test data
     if modelType == 'pr':
         predictions = model._predict_proba_lr(test_features)
@@ -288,15 +410,36 @@ def testModel(model, test_features, test_labels, verbose, modelType):
 
     log('%sFinish Testing Model... %s', verbose, True)
 
-    # roc curve for models
-    if test_labels !=  []:
+    # roc auc score
+    if test_labels !=  []: # when it is not in test mode
         aucScore = roc_auc_score(test_labels, predictions[:, 1]) * 100
-
         log('AUC: {auc:.0f}%'.format(auc=aucScore), verbose)
 
+    if doGridSearch:
+        log("Best parameters found: \n", verbose)
+        log(model.best_params_, verbose)
 
-def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode):
-    createdDataFile = re.sub('\..*$', '', createdDataName)
+
+def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, balance, selectNFeatures, path, createdDataName, randomState, testMode, sampleByAge, sampleByYear, parameters, doGridSearch):
+    """Main module function, runs the entire ML pipeline according to the arguments given
+
+    Args:
+        dataFromFile (bool): to get data from file, instead having to create it
+        saveCleanData (bool): to save data after pre processing
+        trainSize (int): train data percentage
+        modelType (str): states the model to be used
+        verbose (bool): controls verbose mode
+        balance (bool): controls data balancing
+        selectNFeatures (int): number of features to select
+        path (str): path of the train data
+        createdDataName (str): name of the data file created
+        randomState (int): split test train random state
+        testMode (str): path to test data, or none
+        sampleByAge (str): age to sample data with, or none
+        sampleByYear (str): years to sample data with, or none
+        parameters (array): list of hyper-parameters
+    """
+    createdDataFile = re.sub('\..*$', '', createdDataName) # used to remove file name extensions
 
     # =============== Creating Features ===============
 
@@ -308,15 +451,18 @@ def runPipeline(dataFromFile, saveCleanData, trainSize, modelType, verbose, bala
 
     # ================ Cleaning Data ==================
 
-    loansDataFrame = processFeatures(loansDataFrame, verbose)
+    loansDataFrame = processFeatures(loansDataFrame, verbose, sampleByAge, sampleByYear)
 
     if saveCleanData:
         loansDataFrame.to_csv(OUTPUT_DATA_PATH+'createdData_CLEAN.csv', index=False)
 
     # ================ Creating Model =================
 
-    (model, test_features, test_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode)
+    (model, test_features, test_labels, train_features, train_labels) = createModel(loansDataFrame, trainSize, modelType, verbose, balance, selectNFeatures, randomState, testMode, parameters)
 
     # ================ Testing Model ==================
 
-    testModel(model, test_features, test_labels, verbose, modelType)
+    if doGridSearch:
+        testModel(gridSearch(modelType, train_features, train_labels, verbose), test_features, test_labels, verbose, modelType, doGridSearch)
+    else:
+        testModel(model, test_features, test_labels, verbose, modelType, False)

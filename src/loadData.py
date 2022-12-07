@@ -1,9 +1,15 @@
 import pandas as pd
 
-from utils import convertIntDate
-
 
 def loadData(path):
+    """Loads all the data in csv to data frames
+
+    Args:
+        path (str): data path
+
+    Returns:
+        tuple: data frames
+    """
     accounts = pd.read_csv(path+'account.csv', sep=";")
     cards = pd.read_csv(path+'card_dev.csv', sep=";")
     clients = pd.read_csv(path+'client.csv', sep=";")
